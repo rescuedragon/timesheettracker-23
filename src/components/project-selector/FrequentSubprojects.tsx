@@ -35,8 +35,8 @@ const FrequentSubprojects: React.FC<FrequentSubprojectsProps> = ({
 
   return (
     <div className="space-y-2">
-      <Label className="flex items-center gap-2 text-sm font-semibold">
-        <Clock className="h-4 w-4" />
+      <Label className="flex items-center gap-2 text-sm font-semibold text-black">
+        <Clock className="h-4 w-4 text-black" />
         Frequently Used Subprojects (Top 5)
       </Label>
       <div className="flex flex-wrap gap-2">

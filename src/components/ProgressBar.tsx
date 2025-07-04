@@ -82,7 +82,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
                 cx="50"
                 cy="50"
                 r="40"
-                stroke="hsl(var(--accent))"
+                stroke={color}
                 strokeWidth="8"
                 fill="none"
                 strokeDasharray={`${2 * Math.PI * 40}`}
@@ -99,9 +99,10 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
           {/* Linear Progress Bar */}
           <div className="w-40 h-3 bg-border/40 rounded-full overflow-hidden shadow-inner">
             <div 
-              className="h-full bg-gradient-accent-modern transition-all duration-1000 ease-out rounded-full relative overflow-hidden"
+              className="h-full transition-all duration-1000 ease-out rounded-full relative overflow-hidden"
               style={{
                 width: `${progressPercentage}%`,
+                backgroundColor: color,
               }}
             >
               {/* Animated shimmer */}
