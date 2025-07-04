@@ -200,6 +200,13 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
     }
   };
 
+  const handleTimeEdit = (logId: string, newValue: string) => {
+    const hours = parseFloat(newValue) || 0;
+    const seconds = hours * 3600;
+    onUpdateTime(logId, seconds);
+    setEditingCell(null);
+  };
+
   const getCurrentDateRangeData = () => {
     const startDate = new Date(dateRange.start);
     const endDate = new Date(dateRange.end);
