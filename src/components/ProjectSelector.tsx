@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FolderOpen, Target, Clock, Search } from 'lucide-react';
 import { Project } from './TimeTracker';
+import { generateProjectColor, isColorCodedProjectsEnabled } from '@/lib/projectColors';
 
 interface ProjectSelectorProps {
   projects: Project[];
@@ -29,6 +30,31 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   const [projectSearchTerm, setProjectSearchTerm] = useState('');
   const [subprojectSearchTerm, setSubprojectSearchTerm] = useState('');
   const [frequentProjects, setFrequentProjects] = useState<string[]>([]);
+  const [colorCodedEnabled, setColorCodedEnabled] = useState(false);
+
+  useEffect(() => {
+    // Check if color-coded projects are enabled
+    setColorCodedEnabled(isColorCodedProjectsEnabled());
+    
+    // Listen for storage changes
+    const handleStorageChange = () => {
+      setColorCodedEnabled(isColorCodedProjectsEnabled());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom events from the settings component
+    const handleSettingsChange = () => {
+      setColorCodedEnabled(isColorCodedProjectsEnabled());
+    };
+    
+    window.addEventListener('settings-changed', handleSettingsChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('settings-changed', handleSettingsChange);
+    };
+  }, []);
 
   useEffect(() => {
     // Calculate frequent projects based on total time charged
@@ -90,6 +116,15 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
     setSubprojectSearchTerm('');
   };
 
+  const getProjectBackgroundStyle = (projectName: string) => {
+    if (!colorCodedEnabled) return {};
+    return {
+      backgroundColor: generateProjectColor(projectName),
+      border: '1px solid rgba(0, 0, 0, 0.1)',
+      borderRadius: '6px'
+    };
+  };
+
   return (
     <div className="space-y-6 flex flex-col h-full">
       {/* Project Selection */}
@@ -98,7 +133,7 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
           <FolderOpen className="h-4 w-4" />
           Main Project
         </Label>
-        <div className="relative">
+        <div className="relative" style={selectedProject ? getProjectBackgroundStyle(selectedProject.name) : {}}>
           <Select value={selectedProjectId} onValueChange={handleProjectSelectChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select a main project..." />
@@ -137,6 +172,7 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
                   size="sm"
                   onClick={() => handleFrequentProjectSelect(projectName)}
                   className="text-xs"
+                  style={colorCodedEnabled ? getProjectBackgroundStyle(projectName) : {}}
                 >
                   {projectName}
                 </Button>
@@ -152,33 +188,38 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
           <Target className="h-4 w-4" />
           Subproject
         </Label>
-        <Select 
-          value={selectedSubprojectId} 
-          onValueChange={handleSubprojectSelectChange}
-          disabled={!selectedProject}
+        <div 
+          className="relative" 
+          style={selectedProject && selectedSubproject ? getProjectBackgroundStyle(selectedProject.name) : {}}
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a subproject..." />
-          </SelectTrigger>
-          <SelectContent>
-            {selectedProject && (
-              <div className="flex items-center px-3 pb-2">
-                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                <Input
-                  placeholder="Search subprojects..."
-                  value={subprojectSearchTerm}
-                  onChange={(e) => setSubprojectSearchTerm(e.target.value)}
-                  className="h-8 w-full border-0 p-0 focus:ring-0 focus:outline-none"
-                />
-              </div>
-            )}
-            {filteredSubprojects.map(subproject => (
-              <SelectItem key={subproject.id} value={subproject.id}>
-                {subproject.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select 
+            value={selectedSubprojectId} 
+            onValueChange={handleSubprojectSelectChange}
+            disabled={!selectedProject}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a subproject..." />
+            </SelectTrigger>
+            <SelectContent>
+              {selectedProject && (
+                <div className="flex items-center px-3 pb-2">
+                  <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                  <Input
+                    placeholder="Search subprojects..."
+                    value={subprojectSearchTerm}
+                    onChange={(e) => setSubprojectSearchTerm(e.target.value)}
+                    className="h-8 w-full border-0 p-0 focus:ring-0 focus:outline-none"
+                  />
+                </div>
+              )}
+              {filteredSubprojects.map(subproject => (
+                <SelectItem key={subproject.id} value={subproject.id}>
+                  {subproject.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );

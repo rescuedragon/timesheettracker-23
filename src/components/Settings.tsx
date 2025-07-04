@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,12 @@ const Settings: React.FC = () => {
   const [progressBarColor, setProgressBarColor] = useState(() => {
     const saved = localStorage.getItem('progressbar-color');
     return saved || '#10b981';
+  });
+
+  // Color-coded projects settings
+  const [colorCodedProjectsEnabled, setColorCodedProjectsEnabled] = useState(() => {
+    const saved = localStorage.getItem('color-coded-projects-enabled');
+    return saved ? JSON.parse(saved) : false;
   });
 
   // Get projects from localStorage
@@ -101,6 +106,11 @@ const Settings: React.FC = () => {
   const handleProgressBarColorChange = (color: string) => {
     setProgressBarColor(color);
     localStorage.setItem('progressbar-color', color);
+  };
+
+  const handleColorCodedProjectsToggle = (enabled: boolean) => {
+    setColorCodedProjectsEnabled(enabled);
+    localStorage.setItem('color-coded-projects-enabled', JSON.stringify(enabled));
   };
 
   return (
@@ -282,6 +292,27 @@ const Settings: React.FC = () => {
                       
                       <div className="text-sm text-muted-foreground">
                         Preview: The progress bar will fill as you log time entries throughout the day.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <Label className="text-base">Color-Coded Projects</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Highlight project names and rows with consistent colors to easily identify project groups
+                      </p>
+                    </div>
+                    <Switch
+                      checked={colorCodedProjectsEnabled}
+                      onCheckedChange={handleColorCodedProjectsToggle}
+                    />
+                  </div>
+                  
+                  {colorCodedProjectsEnabled && (
+                    <div className="ml-4 p-4 bg-muted rounded-lg space-y-3">
+                      <div className="text-sm text-muted-foreground">
+                        Preview: Each project and its subprojects will be highlighted with the same soft color across all views for easy identification.
                       </div>
                     </div>
                   )}

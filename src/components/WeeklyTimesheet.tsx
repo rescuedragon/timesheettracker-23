@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { generateProjectColor, isColorCodedProjectsEnabled } from '@/lib/projectColors';
 
 interface WeeklyTimesheetProps {
   timeLogs: TimeLog[];
@@ -62,6 +63,39 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
   const [showCustomRange, setShowCustomRange] = useState(false);
   const [customStartDate, setCustomStartDate] = useState<Date>();
   const [customEndDate, setCustomEndDate] = useState<Date>();
+  const [colorCodedEnabled, setColorCodedEnabled] = useState(false);
+
+  React.useEffect(() => {
+    setColorCodedEnabled(isColorCodedProjectsEnabled());
+    
+    const handleStorageChange = () => {
+      setColorCodedEnabled(isColorCodedProjectsEnabled());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('settings-changed', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('settings-changed', handleStorageChange);
+    };
+  }, []);
+
+  const getProjectRowStyle = (projectName: string) => {
+    if (!colorCodedEnabled) return {};
+    return {
+      backgroundColor: generateProjectColor(projectName)
+    };
+  };
+
+  const getSubprojectRowStyle = (projectName: string) => {
+    if (!colorCodedEnabled) return {};
+    const baseColor = generateProjectColor(projectName);
+    // Make subproject rows slightly more transparent
+    return {
+      backgroundColor: baseColor.replace('0.7', '0.5')
+    };
+  };
 
   const formatHours = (seconds: number) => {
     return (seconds / 3600).toFixed(1);
@@ -564,7 +598,10 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
               <tbody>
                 {getProjectTimeData().map(project => (
                   <React.Fragment key={project.projectId}>
-                    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 bg-white dark:bg-gray-900">
+                    <tr 
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 bg-white dark:bg-gray-900"
+                      style={getProjectRowStyle(project.projectName)}
+                    >
                       <td className="border border-gray-200 px-4 py-3">
                         <button
                           onClick={() => toggleProjectExpansion(project.projectId)}
@@ -619,15 +656,19 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
                       </td>
                     </tr>
                      {expandedProjects.has(project.projectId) && project.subprojects.map(subproject => (
-                       <tr key={subproject.subprojectId} className="bg-gray-100 dark:bg-gray-750 border-l-4 border-l-gray-500 dark:border-l-gray-400">
-                         <td className="border border-gray-200 px-4 py-3 pl-12 text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-750">
+                       <tr 
+                         key={subproject.subprojectId} 
+                         className="border-l-4 border-l-gray-500 dark:border-l-gray-400"
+                         style={getSubprojectRowStyle(project.projectName)}
+                       >
+                         <td className="border border-gray-200 px-4 py-3 pl-12 text-gray-600 dark:text-gray-400">
                            <span className="text-sm italic">└ {subproject.subprojectName}</span>
                          </td>
                          {days.map(day => {
                            const cellKey = `${project.projectId}-${subproject.subprojectId}-${day.dayName}`;
                            const timeData = subproject.dailyTimes[day.dayName];
                            return (
-                             <td key={day.dayName} className="border border-gray-200 px-2 py-3 text-center bg-gray-100 dark:bg-gray-750">
+                             <td key={day.dayName} className="border border-gray-200 px-2 py-3 text-center">
                                {editingCell === cellKey ? (
                                  <div className="flex items-center gap-1">
                                    <Input
@@ -660,7 +701,7 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
                              </td>
                            );
                          })}
-                        <td className="border border-gray-200 px-4 py-3 text-center font-medium bg-gray-100 dark:bg-gray-750">
+                        <td className="border border-gray-200 px-4 py-3 text-center font-medium">
                           {formatHours(subproject.totalTime)}
                         </td>
                       </tr>
@@ -780,7 +821,11 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
           </DialogHeader>
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {selectedDayLogs.map(log => (
-              <div key={log.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div 
+                key={log.id} 
+                className="flex items-center justify-between p-4 border rounded-lg"
+                style={getProjectRowStyle(log.projectName)}
+              >
                 <div className="flex-1 grid grid-cols-2 gap-4">
                   <div>
                     <div className="font-medium text-lg">{log.projectName}</div>

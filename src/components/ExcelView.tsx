@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { generateProjectColor, isColorCodedProjectsEnabled } from '@/lib/projectColors';
 
 const ExcelView: React.FC = () => {
   const [timeLogs, setTimeLogs] = useState<TimeLog[]>([]);
@@ -34,6 +34,7 @@ const ExcelView: React.FC = () => {
     startTime: '',
     endTime: ''
   });
+  const [colorCodedEnabled, setColorCodedEnabled] = useState(false);
 
   // Progress bar settings
   const [progressBarEnabled, setProgressBarEnabled] = useState(() => {
@@ -45,6 +46,22 @@ const ExcelView: React.FC = () => {
     const saved = localStorage.getItem('progressbar-color');
     return saved || '#10b981';
   });
+
+  useEffect(() => {
+    setColorCodedEnabled(isColorCodedProjectsEnabled());
+    
+    const handleStorageChange = () => {
+      setColorCodedEnabled(isColorCodedProjectsEnabled());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('settings-changed', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('settings-changed', handleStorageChange);
+    };
+  }, []);
 
   useEffect(() => {
     const savedTimeLogs = localStorage.getItem('timesheet-logs');
@@ -109,6 +126,13 @@ const ExcelView: React.FC = () => {
     
     // Sort by date (most recent first)
     return Object.values(grouped).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  };
+
+  const getRowBackgroundStyle = (projectName: string) => {
+    if (!colorCodedEnabled) return {};
+    return {
+      backgroundColor: generateProjectColor(projectName)
+    };
   };
 
   const handleUpdateTime = (logId: string, newDuration: number) => {
@@ -324,7 +348,11 @@ const ExcelView: React.FC = () => {
                             {dayGroup.logs
                               .sort((a, b) => a.startTime.localeCompare(b.startTime))
                               .map(log => (
-                                <tr key={log.id} className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                                <tr 
+                                  key={log.id} 
+                                  className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                                  style={getRowBackgroundStyle(log.projectName)}
+                                >
                                   <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-blue-900 dark:text-blue-100">{log.projectName}</td>
                                   <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-indigo-700 dark:text-indigo-300">{log.subprojectName}</td>
                                   <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">{log.startTime}</td>

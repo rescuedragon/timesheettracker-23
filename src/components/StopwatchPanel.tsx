@@ -1,20 +1,22 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Play, Pause, Square, Save, Clock, Edit } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Play, Pause, Square, Clock, Eye } from 'lucide-react';
 import { Project, Subproject } from './TimeTracker';
 import { QueuedProject } from './QueuedProjects';
+import { generateProjectColor, isColorCodedProjectsEnabled } from '@/lib/projectColors';
 
 interface StopwatchPanelProps {
-  selectedProject?: Project;
-  selectedSubproject?: Subproject;
-  onLogTime: (duration: number, description: string, startTime: Date, endTime: Date) => void;
-  onSwitchToExcelView?: () => void;
-  onPauseProject?: (queuedProject: QueuedProject) => void;
+  selectedProject: Project | undefined;
+  selectedSubproject: Subproject | undefined;
+  onLogTime: (duration: number, description: string, startTime: Date, endTime: Date, projectId?: string, subprojectId?: string) => void;
+  onSwitchToExcelView: () => void;
+  onPauseProject: (queuedProject: QueuedProject) => void;
   resumedProject?: QueuedProject;
-  onResumedProjectHandled?: () => void;
+  onResumedProjectHandled: () => void;
 }
 
 const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
@@ -26,74 +28,79 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
   resumedProject,
   onResumedProjectHandled
 }) => {
-  const [isRunning, setIsRunning] = useState(() => {
-    const saved = localStorage.getItem('stopwatch-state');
-    return saved ? JSON.parse(saved).isRunning : false;
-  });
-  const [startTime, setStartTime] = useState<Date | null>(() => {
-    const saved = localStorage.getItem('stopwatch-state');
-    return saved && JSON.parse(saved).startTime ? new Date(JSON.parse(saved).startTime) : null;
-  });
-  const [elapsedTime, setElapsedTime] = useState(() => {
-    const saved = localStorage.getItem('stopwatch-state');
-    return saved ? JSON.parse(saved).elapsedTime : 0;
-  });
+  const [isRunning, setIsRunning] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [startTime, setStartTime] = useState<Date | null>(null);
   const [description, setDescription] = useState('');
-  const [showDescription, setShowDescription] = useState(false);
-  const [isEditingTime, setIsEditingTime] = useState(false);
-  const [editableTime, setEditableTime] = useState('');
+  const [colorCodedEnabled, setColorCodedEnabled] = useState(false);
 
-  // Save state to localStorage whenever it changes
   useEffect(() => {
-    const state = {
-      isRunning,
-      startTime: startTime?.toISOString(),
-      elapsedTime,
-      projectId: selectedProject?.id,
-      subprojectId: selectedSubproject?.id
+    setColorCodedEnabled(isColorCodedProjectsEnabled());
+    
+    const handleStorageChange = () => {
+      setColorCodedEnabled(isColorCodedProjectsEnabled());
     };
-    localStorage.setItem('stopwatch-state', JSON.stringify(state));
-  }, [isRunning, startTime, elapsedTime, selectedProject?.id, selectedSubproject?.id]);
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('settings-changed', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('settings-changed', handleStorageChange);
+    };
+  }, []);
+
+  // Load stopwatch state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem('stopwatch-state');
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      setIsRunning(state.isRunning);
+      setElapsedTime(state.elapsedTime);
+      setDescription(state.description || '');
+      if (state.startTime) {
+        setStartTime(new Date(state.startTime));
+      }
+    }
+  }, []);
 
   // Handle resumed project
   useEffect(() => {
     if (resumedProject) {
-      setStartTime(new Date(Date.now() - resumedProject.elapsedTime * 1000));
       setElapsedTime(resumedProject.elapsedTime);
+      setStartTime(resumedProject.startTime);
       setIsRunning(true);
-      if (onResumedProjectHandled) {
-        onResumedProjectHandled();
-      }
+      onResumedProjectHandled();
     }
   }, [resumedProject, onResumedProjectHandled]);
 
+  // Save stopwatch state to localStorage
+  useEffect(() => {
+    const state = {
+      isRunning,
+      elapsedTime,
+      startTime: startTime?.toISOString(),
+      description
+    };
+    localStorage.setItem('stopwatch-state', JSON.stringify(state));
+  }, [isRunning, elapsedTime, startTime, description]);
+
+  // Timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
     if (isRunning && startTime) {
       interval = setInterval(() => {
-        const newElapsedTime = Math.floor((Date.now() - startTime.getTime()) / 1000);
-        
-        // Stop if exceeds 8 hours (28800 seconds)
-        if (newElapsedTime >= 28800) {
-          setElapsedTime(28800);
-          setIsRunning(false);
-          // Auto-save when hitting 8 hours
-          if (selectedProject && selectedSubproject) {
-            const endTime = new Date(startTime.getTime() + 28800 * 1000);
-            onLogTime(28800, 'Auto-stopped at 8 hours', startTime, endTime);
-            handleReset();
-          }
-        } else {
-          setElapsedTime(newElapsedTime);
-        }
+        const now = new Date();
+        const newElapsedTime = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        setElapsedTime(newElapsedTime);
       }, 1000);
     }
-
+    
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, startTime, selectedProject, selectedSubproject, onLogTime]);
+  }, [isRunning, startTime]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -102,29 +109,8 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const formatHours = (seconds: number) => {
-    return (seconds / 3600).toFixed(2);
-  };
-
-  const parseTimeInput = (timeStr: string) => {
-    const parts = timeStr.split(':');
-    if (parts.length === 3) {
-      const hours = parseInt(parts[0]) || 0;
-      const minutes = parseInt(parts[1]) || 0;
-      const seconds = parseInt(parts[2]) || 0;
-      return hours * 3600 + minutes * 60 + seconds;
-    } else if (parts.length === 2) {
-      const hours = parseInt(parts[0]) || 0;
-      const minutes = parseInt(parts[1]) || 0;
-      return hours * 3600 + minutes * 60;
-    } else {
-      const hours = parseFloat(timeStr) || 0;
-      return Math.round(hours * 3600);
-    }
-  };
-
   const handleStart = () => {
-    if (!selectedProject) return;
+    if (!selectedProject || !selectedSubproject) return;
     
     const now = new Date();
     setStartTime(now);
@@ -132,227 +118,142 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
     setElapsedTime(0);
   };
 
-  const handleStop = () => {
-    setIsRunning(false);
-  };
-
   const handlePause = () => {
-    if (startTime && selectedProject && onPauseProject) {
-      const queuedProject: QueuedProject = {
-        id: Date.now().toString(),
-        projectId: selectedProject.id,
-        subprojectId: selectedSubproject?.id || '',
-        projectName: selectedProject.name,
-        subprojectName: selectedSubproject?.name || 'No subproject',
-        elapsedTime,
-        startTime
-      };
-      
-      onPauseProject(queuedProject);
-      setIsRunning(false);
-      setStartTime(null);
-      setElapsedTime(0);
-    }
+    if (!selectedProject || !selectedSubproject || !startTime) return;
+    
+    const queuedProject: QueuedProject = {
+      id: Date.now().toString(),
+      projectId: selectedProject.id,
+      subprojectId: selectedSubproject.id,
+      projectName: selectedProject.name,
+      subprojectName: selectedSubproject.name,
+      elapsedTime,
+      startTime
+    };
+    
+    onPauseProject(queuedProject);
+    handleStop();
   };
 
-  const handleReset = () => {
+  const handleStop = () => {
+    if (!selectedProject || !selectedSubproject || !startTime) return;
+    
+    const endTime = new Date();
+    const finalDuration = elapsedTime;
+    
+    if (finalDuration > 0) {
+      onLogTime(finalDuration, description, startTime, endTime);
+    }
+    
     setIsRunning(false);
-    setStartTime(null);
     setElapsedTime(0);
+    setStartTime(null);
     setDescription('');
-    setShowDescription(false);
-    setIsEditingTime(false);
-    setEditableTime('');
     localStorage.removeItem('stopwatch-state');
   };
 
-  const handleEditTime = () => {
-    setIsEditingTime(true);
-    setEditableTime(formatTime(elapsedTime));
-  };
+  const canStart = selectedProject && selectedSubproject && !isRunning;
+  const canPauseOrStop = isRunning && startTime;
 
-  const handleSaveEditedTime = () => {
-    const newElapsedTime = parseTimeInput(editableTime);
-    setElapsedTime(newElapsedTime);
-    setIsEditingTime(false);
+  const getProjectBackgroundStyle = () => {
+    if (!colorCodedEnabled || !selectedProject) return {};
+    return {
+      backgroundColor: generateProjectColor(selectedProject.name),
+      border: '1px solid rgba(0, 0, 0, 0.1)',
+      borderRadius: '8px',
+      padding: '16px',
+      margin: '8px 0'
+    };
   };
-
-  const handleSave = () => {
-    if (startTime && elapsedTime > 0) {
-      const endTime = new Date(startTime.getTime() + elapsedTime * 1000);
-      onLogTime(elapsedTime, description, startTime, endTime);
-      handleReset();
-      
-      if (onSwitchToExcelView) {
-        setTimeout(() => {
-          onSwitchToExcelView();
-        }, 500);
-      }
-    }
-  };
-
-  const canStart = selectedProject && !isRunning;
-  const canStop = isRunning;
-  const canPause = isRunning;
-  const canSave = !isRunning && elapsedTime > 0;
 
   return (
-    <div className="flex flex-col h-full items-center justify-center space-y-6">
-      {/* Selection Info */}
-      <div className="text-center space-y-2">
-        <h3 className="text-lg font-semibold">
-          {selectedProject ? selectedProject.name : 'No project selected'}
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          {selectedSubproject ? selectedSubproject.name : 'No subproject (optional)'}
-        </p>
-      </div>
-
+    <div className="space-y-6 flex flex-col h-full">
+      {/* Project Info Display */}
+      {selectedProject && selectedSubproject && (
+        <div className="text-center space-y-2" style={getProjectBackgroundStyle()}>
+          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+            {selectedProject.name}
+          </div>
+          <div className="text-md text-gray-600 dark:text-gray-400">
+            {selectedSubproject.name}
+          </div>
+        </div>
+      )}
+      
       {/* Stopwatch Display */}
       <div className="text-center">
-        <div className="text-6xl font-mono font-bold text-slate-800 dark:text-slate-200 mb-4">
+        <div className="text-6xl font-mono font-bold text-gray-800 dark:text-gray-200 mb-4">
           {formatTime(elapsedTime)}
         </div>
         
-        {isRunning && (
-          <div className="flex items-center justify-center gap-2 text-green-600">
-            <Clock className="h-4 w-4 animate-pulse" />
-            <span className="text-sm">Recording...</span>
-          </div>
-        )}
-
-        {elapsedTime >= 28800 && (
-          <div className="text-red-600 text-sm mt-2">
-            Maximum 8 hours reached - automatically stopped
-          </div>
-        )}
-      </div>
-
-      {/* Control Buttons */}
-      <div className="flex gap-3">
-        {!isRunning ? (
+        {/* Control Buttons */}
+        <div className="flex justify-center gap-4 mb-6">
           <Button
             onClick={handleStart}
             disabled={!canStart}
-            className="bg-green-600 hover:bg-green-700"
-            size="lg"
+            className="flex items-center gap-2 px-6 py-3 text-lg bg-green-600 hover:bg-green-700"
           >
-            <Play className="h-5 w-5 mr-2" />
+            <Play className="h-5 w-5" />
             Start
           </Button>
-        ) : (
+          
+          <Button
+            onClick={handlePause}
+            disabled={!canPauseOrStop}
+            variant="outline"
+            className="flex items-center gap-2 px-6 py-3 text-lg"
+          >
+            <Pause className="h-5 w-5" />
+            Pause
+          </Button>
+          
           <Button
             onClick={handleStop}
-            disabled={!canStop}
-            className="bg-red-600 hover:bg-red-700"
-            size="lg"
+            disabled={!canPauseOrStop}
+            variant="outline"
+            className="flex items-center gap-2 px-6 py-3 text-lg"
           >
-            <Square className="h-5 w-5 mr-2" />
+            <Square className="h-5 w-5" />
             Stop
           </Button>
-        )}
+        </div>
+      </div>
 
-        <Button
-          onClick={handlePause}
-          disabled={!canPause}
-          variant="outline"
-          size="lg"
-        >
-          <Pause className="h-5 w-5 mr-2" />
-          Pause
-        </Button>
+      {/* Description Input */}
+      <div className="space-y-2">
+        <Label htmlFor="description">Description (optional)</Label>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="What are you working on?"
+          className="min-h-[80px]"
+        />
+      </div>
 
+      {/* View Data Button */}
+      <div className="mt-auto">
         <Button
-          onClick={handleReset}
+          onClick={onSwitchToExcelView}
           variant="outline"
-          size="lg"
+          className="w-full flex items-center gap-2"
         >
-          <Square className="h-5 w-5 mr-2" />
-          Reset
+          <Eye className="h-4 w-4" />
+          View Time Data
         </Button>
       </div>
 
-      {/* Save Section */}
-      {canSave && (
-        <div className="w-full max-w-md space-y-3">
-          {!showDescription ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 justify-center">
-                <span className="text-lg font-semibold">{formatHours(elapsedTime)} hrs</span>
-                <Button
-                  onClick={handleEditTime}
-                  variant="ghost"
-                  size="sm"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              {isEditingTime && (
-                <div className="space-y-2">
-                  <Input
-                    value={editableTime}
-                    onChange={(e) => setEditableTime(e.target.value)}
-                    placeholder="HH:MM:SS or decimal hours"
-                    className="text-center"
-                  />
-                  <div className="flex gap-2">
-                    <Button onClick={handleSaveEditedTime} size="sm" className="flex-1">
-                      Save Time
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setIsEditingTime(false)}
-                      size="sm"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              <Button
-                onClick={() => setShowDescription(true)}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={isEditingTime}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Log Time
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div>
-                <Label>Description (optional)</Label>
-                <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="What did you work on?"
-                  rows={3}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleSave} className="flex-1">
-                  Save Entry
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowDescription(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
+      {/* Status Message */}
+      {!selectedProject || !selectedSubproject ? (
+        <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
+          Please select a project and subproject to start tracking time
+        </div>
+      ) : (
+        <div className="text-center text-gray-600 dark:text-gray-300 text-sm">
+          <Clock className="h-4 w-4 inline mr-1" />
+          Ready to track time for {selectedProject.name} → {selectedSubproject.name}
         </div>
       )}
-
-      {/* Instructions */}
-      {!selectedProject ? (
-        <p className="text-sm text-muted-foreground text-center max-w-xs">
-          Select a project from the left panel to start tracking time
-        </p>
-      ) : null}
     </div>
   );
 };
