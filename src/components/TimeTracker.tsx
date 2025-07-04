@@ -84,6 +84,48 @@ const TimeTracker = () => {
     localStorage.setItem('queued-projects', JSON.stringify(queuedProjects));
   }, [queuedProjects]);
 
+  // Listen for subproject update/delete events
+  useEffect(() => {
+    const handleUpdateSubproject = (event: any) => {
+      const { projectId, subprojectId, newName } = event.detail;
+      setProjects(projects.map(project => 
+        project.id === projectId 
+          ? {
+              ...project,
+              subprojects: project.subprojects.map(sub =>
+                sub.id === subprojectId ? { ...sub, name: newName } : sub
+              )
+            }
+          : project
+      ));
+    };
+
+    const handleDeleteSubproject = (event: any) => {
+      const { projectId, subprojectId } = event.detail;
+      setProjects(projects.map(project => 
+        project.id === projectId 
+          ? {
+              ...project,
+              subprojects: project.subprojects.filter(sub => sub.id !== subprojectId)
+            }
+          : project
+      ));
+      
+      // Clear selection if the deleted subproject was selected
+      if (selectedSubprojectId === subprojectId) {
+        setSelectedSubprojectId('');
+      }
+    };
+
+    window.addEventListener('update-subproject', handleUpdateSubproject);
+    window.addEventListener('delete-subproject', handleDeleteSubproject);
+
+    return () => {
+      window.removeEventListener('update-subproject', handleUpdateSubproject);
+      window.removeEventListener('delete-subproject', handleDeleteSubproject);
+    };
+  }, [projects, selectedSubprojectId]);
+
   const addProject = (projectName: string, subprojectName: string = '') => {
     const newProject: Project = {
       id: Date.now().toString(),

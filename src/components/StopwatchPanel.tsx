@@ -8,6 +8,7 @@ import { Play, Pause, Square, Clock, Eye } from 'lucide-react';
 import { Project, Subproject } from './TimeTracker';
 import { QueuedProject } from './QueuedProjects';
 import { generateProjectColor, isColorCodedProjectsEnabled } from '@/lib/projectColors';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface StopwatchPanelProps {
   selectedProject: Project | undefined;
@@ -31,8 +32,10 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [startTime, setStartTime] = useState<Date | null>(null);
-  const [description, setDescription] = useState('');
   const [colorCodedEnabled, setColorCodedEnabled] = useState(false);
+  const [showDescriptionDialog, setShowDescriptionDialog] = useState(false);
+  const [description, setDescription] = useState('');
+  const [pendingLogData, setPendingLogData] = useState<{duration: number, startTime: Date, endTime: Date} | null>(null);
 
   useEffect(() => {
     setColorCodedEnabled(isColorCodedProjectsEnabled());
@@ -57,7 +60,6 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
       const state = JSON.parse(savedState);
       setIsRunning(state.isRunning);
       setElapsedTime(state.elapsedTime);
-      setDescription(state.description || '');
       if (state.startTime) {
         setStartTime(new Date(state.startTime));
       }
@@ -79,11 +81,10 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
     const state = {
       isRunning,
       elapsedTime,
-      startTime: startTime?.toISOString(),
-      description
+      startTime: startTime?.toISOString()
     };
     localStorage.setItem('stopwatch-state', JSON.stringify(state));
-  }, [isRunning, elapsedTime, startTime, description]);
+  }, [isRunning, elapsedTime, startTime]);
 
   // Timer effect
   useEffect(() => {
@@ -142,14 +143,34 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
     const finalDuration = elapsedTime;
     
     if (finalDuration > 0) {
-      onLogTime(finalDuration, description, startTime, endTime);
+      // Store the log data and show description dialog
+      setPendingLogData({
+        duration: finalDuration,
+        startTime,
+        endTime
+      });
+      setShowDescriptionDialog(true);
     }
     
     setIsRunning(false);
     setElapsedTime(0);
     setStartTime(null);
-    setDescription('');
     localStorage.removeItem('stopwatch-state');
+  };
+
+  const handleConfirmLog = () => {
+    if (pendingLogData) {
+      onLogTime(pendingLogData.duration, description, pendingLogData.startTime, pendingLogData.endTime);
+    }
+    setShowDescriptionDialog(false);
+    setDescription('');
+    setPendingLogData(null);
+  };
+
+  const handleCancelLog = () => {
+    setShowDescriptionDialog(false);
+    setDescription('');
+    setPendingLogData(null);
   };
 
   const canStart = selectedProject && selectedSubproject && !isRunning;
@@ -188,14 +209,25 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
         
         {/* Control Buttons */}
         <div className="flex justify-center gap-4 mb-6">
-          <Button
-            onClick={handleStart}
-            disabled={!canStart}
-            className="flex items-center gap-2 px-6 py-3 text-lg bg-green-600 hover:bg-green-700"
-          >
-            <Play className="h-5 w-5" />
-            Start
-          </Button>
+          {!isRunning ? (
+            <Button
+              onClick={handleStart}
+              disabled={!canStart}
+              className="flex items-center gap-2 px-6 py-3 text-lg bg-green-600 hover:bg-green-700"
+            >
+              <Play className="h-5 w-5" />
+              Start
+            </Button>
+          ) : (
+            <Button
+              onClick={handleStop}
+              disabled={!canPauseOrStop}
+              className="flex items-center gap-2 px-6 py-3 text-lg bg-red-600 hover:bg-red-700"
+            >
+              <Square className="h-5 w-5" />
+              Stop
+            </Button>
+          )}
           
           <Button
             onClick={handlePause}
@@ -206,29 +238,7 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
             <Pause className="h-5 w-5" />
             Pause
           </Button>
-          
-          <Button
-            onClick={handleStop}
-            disabled={!canPauseOrStop}
-            variant="outline"
-            className="flex items-center gap-2 px-6 py-3 text-lg"
-          >
-            <Square className="h-5 w-5" />
-            Stop
-          </Button>
         </div>
-      </div>
-
-      {/* Description Input */}
-      <div className="space-y-2">
-        <Label htmlFor="description">Description (optional)</Label>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="What are you working on?"
-          className="min-h-[80px]"
-        />
       </div>
 
       {/* View Data Button */}
@@ -254,6 +264,43 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
           Ready to track time for {selectedProject.name} → {selectedSubproject.name}
         </div>
       )}
+
+      {/* Description Dialog - Only shown after stopping */}
+      <Dialog open={showDescriptionDialog} onOpenChange={() => {}}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Log Time Entry</DialogTitle>
+          </DialogHeader>
+          {pendingLogData && (
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded">
+                <div className="font-medium">{selectedProject?.name}</div>
+                <div className="text-sm text-muted-foreground">{selectedSubproject?.name}</div>
+                <div className="text-sm font-mono mt-1">Duration: {formatTime(pendingLogData.duration)}</div>
+              </div>
+              
+              <div>
+                <Label>Description (optional)</Label>
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="What did you work on?"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Button onClick={handleConfirmLog} className="flex-1">
+                  Save Entry
+                </Button>
+                <Button variant="outline" onClick={handleCancelLog}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

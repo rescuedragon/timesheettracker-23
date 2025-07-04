@@ -124,7 +124,6 @@ const ExcelView: React.FC = () => {
       grouped[date].totalHours += log.duration;
     });
     
-    // Sort by date (most recent first)
     return Object.values(grouped).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
 
@@ -157,7 +156,6 @@ const ExcelView: React.FC = () => {
     if (editingLog && editFormData.duration) {
       const newDuration = parseHours(editFormData.duration);
       
-      // Update the log in state
       const updatedLogs = timeLogs.map(log =>
         log.id === editingLog.id
           ? {
@@ -204,7 +202,6 @@ const ExcelView: React.FC = () => {
       setTimeLogs(updatedLogs);
       localStorage.setItem('timesheet-logs', JSON.stringify(updatedLogs));
       
-      // Reset form
       setAddFormData({
         projectId: '',
         subprojectId: '',
@@ -353,16 +350,16 @@ const ExcelView: React.FC = () => {
                                   className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                                   style={getRowBackgroundStyle(log.projectName)}
                                 >
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-blue-900 dark:text-blue-100">{log.projectName}</td>
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-indigo-700 dark:text-indigo-300">{log.subprojectName}</td>
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">{log.startTime}</td>
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">{log.endTime}</td>
+                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-900 dark:text-gray-100">{log.projectName}</td>
+                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.subprojectName}</td>
+                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.startTime}</td>
+                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.endTime}</td>
                                   <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">
-                                    <span className="font-mono font-bold text-green-700 dark:text-green-400">
+                                    <span className="font-mono font-bold text-red-700 dark:text-red-400">
                                       {formatHours(log.duration)}
                                     </span>
                                   </td>
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">{log.description || '-'}</td>
+                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.description || '-'}</td>
                                    <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">
                                      <div className="flex gap-1">
                                        <Button
