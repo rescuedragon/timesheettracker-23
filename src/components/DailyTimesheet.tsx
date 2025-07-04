@@ -39,6 +39,16 @@ const DailyTimesheet: React.FC<DailyTimesheetProps> = ({ timeLogs, onSwitchToWee
     ? dailyLogs 
     : dailyLogs.filter(log => log.projectName === selectedProject);
 
+  // Group logs by project name
+  const groupedLogs = filteredLogs.reduce((groups, log) => {
+    const key = log.projectName;
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(log);
+    return groups;
+  }, {} as Record<string, typeof filteredLogs>);
+
   const totalDuration = filteredLogs.reduce((sum, log) => sum + log.duration, 0);
 
   const uniqueProjects = [...new Set(dailyLogs.map(log => log.projectName))];
@@ -127,30 +137,50 @@ const DailyTimesheet: React.FC<DailyTimesheetProps> = ({ timeLogs, onSwitchToWee
               <p>No time entries for this day</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredLogs.map(log => (
-                <div key={log.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-semibold text-gray-700 dark:text-gray-200">{log.projectName}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{log.subprojectName}</p>
+            <div className="space-y-4">
+              {Object.entries(groupedLogs).map(([projectName, logs]) => {
+                const projectTotalDuration = logs.reduce((sum, log) => sum + log.duration, 0);
+                
+                return (
+                  <div key={projectName} className="border rounded-lg overflow-hidden">
+                    {/* Project Header */}
+                    <div className="bg-gray-100 dark:bg-gray-800 p-3 border-b">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-semibold text-gray-700 dark:text-gray-200">{projectName}</h3>
+                        <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                          {formatDuration(projectTotalDuration)}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                        {formatDuration(log.duration)}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {log.startTime} - {log.endTime}
-                      </div>
+                    
+                    {/* Project Logs */}
+                    <div className="divide-y">
+                      {logs.map(log => (
+                        <div key={log.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{log.subprojectName}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-md font-semibold text-green-600 dark:text-green-400">
+                                {formatDuration(log.duration)}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {log.startTime} - {log.endTime}
+                              </div>
+                            </div>
+                          </div>
+                          {log.description && (
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                              {log.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  {log.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                      {log.description}
-                    </p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>

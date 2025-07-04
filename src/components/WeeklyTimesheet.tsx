@@ -345,8 +345,14 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
         : projectData.dailyTimes[day];
         
       if (timeData && timeData.logs.length > 0) {
-        const firstLog = timeData.logs[0];
-        onUpdateTime(firstLog.id, newDurationSeconds);
+        // Update all logs for this cell to proportionally distribute the new time
+        const currentTotalTime = timeData.time;
+        const ratio = newDurationSeconds / currentTotalTime;
+        
+        timeData.logs.forEach(log => {
+          const newLogDuration = Math.round(log.duration * ratio);
+          onUpdateTime(log.id, newLogDuration);
+        });
       }
     }
     

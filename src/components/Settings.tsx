@@ -30,6 +30,12 @@ const Settings: React.FC = () => {
     return saved ? JSON.parse(saved) : false;
   });
 
+  // Frequent subprojects settings
+  const [frequentSubprojectsEnabled, setFrequentSubprojectsEnabled] = useState(() => {
+    const saved = localStorage.getItem('frequent-subprojects-enabled');
+    return saved ? JSON.parse(saved) : false;
+  });
+
   // Get projects from localStorage
   const [projects, setProjects] = useState(() => {
     const saved = localStorage.getItem('timesheet-projects');
@@ -111,6 +117,13 @@ const Settings: React.FC = () => {
   const handleColorCodedProjectsToggle = (enabled: boolean) => {
     setColorCodedProjectsEnabled(enabled);
     localStorage.setItem('color-coded-projects-enabled', JSON.stringify(enabled));
+    window.dispatchEvent(new CustomEvent('settings-changed'));
+  };
+
+  const handleFrequentSubprojectsToggle = (enabled: boolean) => {
+    setFrequentSubprojectsEnabled(enabled);
+    localStorage.setItem('frequent-subprojects-enabled', JSON.stringify(enabled));
+    window.dispatchEvent(new CustomEvent('settings-changed'));
   };
 
   return (
@@ -292,6 +305,27 @@ const Settings: React.FC = () => {
                       
                       <div className="text-sm text-muted-foreground">
                         Preview: The progress bar will fill as you log time entries throughout the day.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <Label className="text-base">Frequent Subprojects</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Show frequently used subprojects as quick selection buttons in the Time Tracker
+                      </p>
+                    </div>
+                    <Switch
+                      checked={frequentSubprojectsEnabled}
+                      onCheckedChange={handleFrequentSubprojectsToggle}
+                    />
+                  </div>
+                  
+                  {frequentSubprojectsEnabled && (
+                    <div className="ml-4 p-4 bg-muted rounded-lg space-y-3">
+                      <div className="text-sm text-muted-foreground">
+                        Preview: Quick access buttons for your top 5 most frequently used subprojects will appear below the subproject selector.
                       </div>
                     </div>
                   )}

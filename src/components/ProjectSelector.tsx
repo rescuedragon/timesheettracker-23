@@ -29,15 +29,20 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   onAddSubproject
 }) => {
   const [colorCodedEnabled, setColorCodedEnabled] = useState(false);
+  const [frequentSubprojectsEnabled, setFrequentSubprojectsEnabled] = useState(false);
 
   const { frequentProjects, trackProjectSelection } = useFrequentProjects(projects);
   const { frequentSubprojects, trackSubprojectSelection } = useFrequentSubprojects(selectedProjectId, projects);
 
   useEffect(() => {
     setColorCodedEnabled(isColorCodedProjectsEnabled());
+    const savedFrequentSubprojects = localStorage.getItem('frequent-subprojects-enabled');
+    setFrequentSubprojectsEnabled(savedFrequentSubprojects ? JSON.parse(savedFrequentSubprojects) : false);
     
     const handleStorageChange = () => {
       setColorCodedEnabled(isColorCodedProjectsEnabled());
+      const savedFrequentSubprojects = localStorage.getItem('frequent-subprojects-enabled');
+      setFrequentSubprojectsEnabled(savedFrequentSubprojects ? JSON.parse(savedFrequentSubprojects) : false);
     };
     
     window.addEventListener('storage', handleStorageChange);
@@ -122,13 +127,15 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
             onSubprojectSelect={handleSubprojectSelectChange}
           />
 
-          <FrequentSubprojects
-            frequentSubprojects={frequentSubprojects}
-            selectedSubprojectName={selectedSubproject?.name}
-            selectedProjectName={selectedProject.name}
-            colorCodedEnabled={colorCodedEnabled}
-            onSubprojectSelect={handleFrequentSubprojectSelect}
-          />
+          {frequentSubprojectsEnabled && (
+            <FrequentSubprojects
+              frequentSubprojects={frequentSubprojects}
+              selectedSubprojectName={selectedSubproject?.name}
+              selectedProjectName={selectedProject.name}
+              colorCodedEnabled={colorCodedEnabled}
+              onSubprojectSelect={handleFrequentSubprojectSelect}
+            />
+          )}
         </div>
       )}
     </div>
