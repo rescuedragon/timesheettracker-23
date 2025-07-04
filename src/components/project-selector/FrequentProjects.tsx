@@ -32,9 +32,9 @@ const FrequentProjects: React.FC<FrequentProjectsProps> = ({
         Frequently Used Projects (Top 5)
       </Label>
       <div className="grid grid-cols-2 gap-2">
-        {frequentProjects.map(projectName => <Button key={projectName} variant={selectedProjectName === projectName ? "default" : "outline"} size="sm" onClick={() => onProjectSelect(projectName)} style={colorCodedEnabled ? getProjectBackgroundStyle(projectName) : {}} className="text-left font-normal text-gray-200 text-base">
-            {projectName}
-          </Button>)}
+         {frequentProjects.map(projectName => <Button key={projectName} variant={selectedProjectName === projectName ? "default" : "outline"} size="sm" onClick={() => onProjectSelect(projectName)} className="text-left font-normal text-xs text-black">
+             {projectName}
+           </Button>)}
       </div>
     </div>;
 };

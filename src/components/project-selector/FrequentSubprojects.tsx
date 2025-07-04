@@ -47,7 +47,6 @@ const FrequentSubprojects: React.FC<FrequentSubprojectsProps> = ({
             size="sm"
             onClick={() => onSubprojectSelect(subprojectName)}
             className="text-xs text-black"
-            style={colorCodedEnabled ? getProjectBackgroundStyle(selectedProjectName) : {}}
           >
             {subprojectName}
           </Button>
