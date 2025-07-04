@@ -98,7 +98,7 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   };
 
   return (
-    <div className="space-y-6 flex flex-col h-full">
+    <div className="space-y-4 flex flex-col h-full">
       <ProjectSearch
         projects={projects}
         selectedProjectId={selectedProjectId}
@@ -113,21 +113,23 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
         onProjectSelect={handleFrequentProjectSelect}
       />
 
-      <SubprojectSearch
-        selectedProject={selectedProject}
-        selectedSubprojectId={selectedSubprojectId}
-        colorCodedEnabled={colorCodedEnabled}
-        onSubprojectSelect={handleSubprojectSelectChange}
-      />
-
       {selectedProject && (
-        <FrequentSubprojects
-          frequentSubprojects={frequentSubprojects}
-          selectedSubprojectName={selectedSubproject?.name}
-          selectedProjectName={selectedProject.name}
-          colorCodedEnabled={colorCodedEnabled}
-          onSubprojectSelect={handleFrequentSubprojectSelect}
-        />
+        <div className="space-y-4">
+          <SubprojectSearch
+            selectedProject={selectedProject}
+            selectedSubprojectId={selectedSubprojectId}
+            colorCodedEnabled={colorCodedEnabled}
+            onSubprojectSelect={handleSubprojectSelectChange}
+          />
+
+          <FrequentSubprojects
+            frequentSubprojects={frequentSubprojects}
+            selectedSubprojectName={selectedSubproject?.name}
+            selectedProjectName={selectedProject.name}
+            colorCodedEnabled={colorCodedEnabled}
+            onSubprojectSelect={handleFrequentSubprojectSelect}
+          />
+        </div>
       )}
     </div>
   );
