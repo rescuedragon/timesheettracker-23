@@ -44,7 +44,7 @@ const FrequentProjects: React.FC<FrequentProjectsProps> = ({
             variant={selectedProjectName === projectName ? "default" : "outline"}
             size="sm"
             onClick={() => onProjectSelect(projectName)}
-            className="text-xs"
+            className="text-xs text-black"
             style={colorCodedEnabled ? getProjectBackgroundStyle(projectName) : {}}
           >
             {projectName}
