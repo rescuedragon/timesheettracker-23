@@ -466,16 +466,18 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
       <Card className="bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-900 dark:to-gray-900 border-gray-200 dark:border-gray-700">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={prevWeek} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <div className="text-center">
-                <div className="flex items-center gap-3 text-lg font-bold text-gray-700 dark:text-gray-300">
-                  <Calendar className="h-5 w-5" />
-                  {getDisplayTitle()}
+            <div className="flex items-center justify-center flex-1">
+              <div className="flex items-center gap-3">
+                <Button variant="outline" size="sm" onClick={prevWeek} className="hover:bg-gray-100 dark:hover:bg-gray-800 flex-shrink-0">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="flex items-center gap-2 text-lg font-bold text-gray-700 dark:text-gray-300">
+                    <Calendar className="h-5 w-5 flex-shrink-0" />
+                    <span className="whitespace-nowrap">{getDisplayTitle()}</span>
+                  </div>
                   <Select value={selectedRange} onValueChange={handleRangeSelect}>
-                    <SelectTrigger className="w-40 h-8 text-sm">
+                    <SelectTrigger className="w-44 h-9 border-2 border-gray-200 dark:border-gray-600">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -489,13 +491,15 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {weekStart.toLocaleDateString()} - {weekEnd.toLocaleDateString()}
-                </div>
+                <Button variant="outline" size="sm" onClick={nextWeek} className="hover:bg-gray-100 dark:hover:bg-gray-800 flex-shrink-0">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
-              <Button variant="outline" size="sm" onClick={nextWeek} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+            </div>
+            <div className="text-center mt-2">
+              <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                {weekStart.toLocaleDateString()} - {weekEnd.toLocaleDateString()}
+              </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
