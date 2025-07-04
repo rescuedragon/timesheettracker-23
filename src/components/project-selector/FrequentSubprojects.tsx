@@ -46,7 +46,7 @@ const FrequentSubprojects: React.FC<FrequentSubprojectsProps> = ({
             variant={selectedSubprojectName === subprojectName ? "default" : "outline"}
             size="sm"
             onClick={() => onSubprojectSelect(subprojectName)}
-            className="text-xs text-black"
+            className={`text-xs ${selectedSubprojectName === subprojectName ? 'text-white' : 'text-black'}`}
           >
             {subprojectName}
           </Button>
