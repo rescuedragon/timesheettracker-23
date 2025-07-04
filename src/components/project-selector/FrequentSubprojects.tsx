@@ -39,14 +39,14 @@ const FrequentSubprojects: React.FC<FrequentSubprojectsProps> = ({
         <Clock className="h-4 w-4" />
         Frequently Used Subprojects (Top 5)
       </Label>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {frequentSubprojects.map(subprojectName => (
           <Button
             key={subprojectName}
             variant={selectedSubprojectName === subprojectName ? "default" : "outline"}
             size="sm"
             onClick={() => onSubprojectSelect(subprojectName)}
-            className="text-xs"
+            className="text-xs w-full justify-start"
             style={colorCodedEnabled ? getProjectBackgroundStyle(selectedProjectName) : {}}
           >
             {subprojectName}

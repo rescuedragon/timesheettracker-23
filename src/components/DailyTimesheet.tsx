@@ -129,23 +129,23 @@ const DailyTimesheet: React.FC<DailyTimesheetProps> = ({ timeLogs, onSwitchToWee
           ) : (
             <div className="space-y-3">
               {filteredLogs.map(log => (
-                <div key={log.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
+                <div key={log.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className="font-semibold text-gray-700">{log.projectName}</h3>
-                      <p className="text-sm text-gray-600">{log.subprojectName}</p>
+                      <h3 className="font-semibold text-gray-700 dark:text-gray-200">{log.projectName}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{log.subprojectName}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-green-600">
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
                         {formatDuration(log.duration)}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         {log.startTime} - {log.endTime}
                       </div>
                     </div>
                   </div>
                   {log.description && (
-                    <p className="text-sm text-gray-600 mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
                       {log.description}
                     </p>
                   )}
