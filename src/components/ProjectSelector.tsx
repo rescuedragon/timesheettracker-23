@@ -80,6 +80,7 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   }, [projects]);
 
   const selectedProject = projects.find(p => p.id === selectedProjectId);
+  const selectedSubproject = selectedProject?.subprojects.find(s => s.id === selectedSubprojectId);
 
   const filteredProjects = projects.filter(project =>
     project.name.toLowerCase().includes(projectSearchTerm.toLowerCase())
