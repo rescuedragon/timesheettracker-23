@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Target, Search, Edit, Trash2 } from 'lucide-react';
-import { Project, Subproject } from '../TimeTracker';
+import { Target, Search } from 'lucide-react';
+import { Project } from '../TimeTracker';
 import { generateProjectColor } from '@/lib/projectColors';
 
 interface SubprojectSearchProps {
@@ -13,17 +13,13 @@ interface SubprojectSearchProps {
   selectedSubprojectId: string;
   colorCodedEnabled: boolean;
   onSubprojectSelect: (subprojectId: string) => void;
-  onEditSubproject: (subproject: Subproject) => void;
-  onDeleteSubproject: (subprojectId: string) => void;
 }
 
 const SubprojectSearch: React.FC<SubprojectSearchProps> = ({
   selectedProject,
   selectedSubprojectId,
   colorCodedEnabled,
-  onSubprojectSelect,
-  onEditSubproject,
-  onDeleteSubproject
+  onSubprojectSelect
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -79,33 +75,7 @@ const SubprojectSearch: React.FC<SubprojectSearchProps> = ({
             )}
             {filteredSubprojects.map(subproject => (
               <SelectItem key={subproject.id} value={subproject.id}>
-                <div className="flex items-center justify-between w-full">
-                  <span>{subproject.name}</span>
-                  <div className="flex gap-1 ml-2">
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEditSubproject(subproject);
-                      }}
-                      size="sm"
-                      variant="ghost"
-                      className="h-4 w-4 p-0"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteSubproject(subproject.id);
-                      }}
-                      size="sm"
-                      variant="ghost"
-                      className="h-4 w-4 p-0 text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
+                {subproject.name}
               </SelectItem>
             ))}
           </SelectContent>

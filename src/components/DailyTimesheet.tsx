@@ -1,264 +1,161 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { ChevronLeft, ChevronRight, Edit } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronLeft, ChevronRight, Calendar, Clock, FileSpreadsheet } from 'lucide-react';
 import { TimeLog } from './TimeTracker';
+import { format, startOfDay, endOfDay, addDays, subDays } from 'date-fns';
 
 interface DailyTimesheetProps {
   timeLogs: TimeLog[];
-  onUpdateTime: (logId: string, newDuration: number) => void;
+  onSwitchToWeeklyView: () => void;
 }
 
-interface DayGroup {
-  date: string;
-  displayDate: string;
-  logs: TimeLog[];
-  totalHours: number;
-}
+const DailyTimesheet: React.FC<DailyTimesheetProps> = ({ timeLogs, onSwitchToWeeklyView }) => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedProject, setSelectedProject] = useState<string>('all');
 
-const DailyTimesheet: React.FC<DailyTimesheetProps> = ({ timeLogs, onUpdateTime }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [editingLog, setEditingLog] = useState<TimeLog | null>(null);
-  const [editFormData, setEditFormData] = useState({
-    duration: '',
-    description: '',
-    startTime: '',
-    endTime: ''
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  };
+
+  const formatDuration = (seconds: number) => {
+    const hours = (seconds / 3600).toFixed(2);
+    return `${hours}h`;
+  };
+
+  const dayStart = startOfDay(selectedDate);
+  const dayEnd = endOfDay(selectedDate);
+
+  const dailyLogs = timeLogs.filter(log => {
+    const logDate = new Date(log.date);
+    return logDate >= dayStart && logDate <= dayEnd;
   });
 
-  const formatHours = (seconds: number) => {
-    return (seconds / 3600).toFixed(2);
+  const filteredLogs = selectedProject === 'all' 
+    ? dailyLogs 
+    : dailyLogs.filter(log => log.projectName === selectedProject);
+
+  const totalDuration = filteredLogs.reduce((sum, log) => sum + log.duration, 0);
+
+  const uniqueProjects = [...new Set(dailyLogs.map(log => log.projectName))];
+
+  const goToPreviousDay = () => {
+    setSelectedDate(subDays(selectedDate, 1));
   };
 
-  const parseHours = (hours: string) => {
-    return parseFloat(hours) * 3600;
+  const goToNextDay = () => {
+    setSelectedDate(addDays(selectedDate, 1));
   };
 
-  const getCurrentWeekDays = (): DayGroup[] => {
-    const weekStart = new Date(currentDate);
-    const day = weekStart.getDay();
-    const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-    weekStart.setDate(diff);
-
-    const days: DayGroup[] = [];
-    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-    
-    for (let i = 0; i < 5; i++) {
-      const date = new Date(weekStart);
-      date.setDate(weekStart.getDate() + i);
-      
-      const dateStr = date.toISOString().split('T')[0];
-      const dayLogs = timeLogs.filter(log => log.date === dateStr);
-      const totalHours = dayLogs.reduce((sum, log) => sum + log.duration, 0);
-      
-      days.push({
-        date: dateStr,
-        displayDate: `${dayNames[i]} ${date.getDate()}/${date.getMonth() + 1}`,
-        logs: dayLogs,
-        totalHours
-      });
-    }
-    
-    return days;
+  const goToToday = () => {
+    setSelectedDate(new Date());
   };
-
-  const handleEditLog = (log: TimeLog) => {
-    setEditingLog(log);
-    setEditFormData({
-      duration: formatHours(log.duration),
-      description: log.description,
-      startTime: log.startTime,
-      endTime: log.endTime
-    });
-  };
-
-  const handleSaveEdit = () => {
-    if (editingLog && editFormData.duration) {
-      const newDuration = parseHours(editFormData.duration);
-      onUpdateTime(editingLog.id, newDuration);
-      
-      // Update the log in localStorage
-      const savedLogs = localStorage.getItem('timesheet-logs');
-      if (savedLogs) {
-        const logs = JSON.parse(savedLogs);
-        const updatedLogs = logs.map((log: TimeLog) =>
-          log.id === editingLog.id
-            ? {
-                ...log,
-                duration: newDuration,
-                description: editFormData.description,
-                startTime: editFormData.startTime,
-                endTime: editFormData.endTime
-              }
-            : log
-        );
-        localStorage.setItem('timesheet-logs', JSON.stringify(updatedLogs));
-      }
-      
-      setEditingLog(null);
-    }
-  };
-
-  const nextWeek = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + 7);
-    setCurrentDate(newDate);
-  };
-
-  const prevWeek = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() - 7);
-    setCurrentDate(newDate);
-  };
-
-  const weekDays = getCurrentWeekDays();
-  const weekStart = new Date(currentDate);
-  const day = weekStart.getDay();
-  const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1);
-  weekStart.setDate(diff);
-  
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 4);
 
   return (
-    <>
+    <div className="space-y-6">
+      {/* Header with Navigation */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={prevWeek}>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-gray-700">
+              <Calendar className="h-5 w-5" />
+              Daily View
+            </CardTitle>
+            <Button onClick={onSwitchToWeeklyView} variant="outline" size="sm">
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Weekly View
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Button onClick={goToPreviousDay} variant="outline" size="sm">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span>
-                Week: {weekStart.toLocaleDateString()} to {weekEnd.toLocaleDateString()}
-              </span>
-              <Button variant="outline" size="sm" onClick={nextWeek}>
+              <div className="text-lg font-semibold text-gray-700 min-w-[200px] text-center">
+                {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+              </div>
+              <Button onClick={goToNextDay} variant="outline" size="sm">
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {weekDays.map(day => (
-              <div key={day.date} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">{day.displayDate}</h3>
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">Total Hours</div>
-                    <div className="text-xl font-bold">{formatHours(day.totalHours)}</div>
-                  </div>
-                </div>
-                
-                {day.logs.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <div className="text-sm">No time entries for this day</div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {day.logs
-                      .sort((a, b) => a.startTime.localeCompare(b.startTime))
-                      .map(log => (
-                        <div key={log.id} className="flex items-center justify-between p-3 border rounded bg-gray-50 dark:bg-gray-800">
-                          <div className="flex-1 grid grid-cols-3 gap-4">
-                            <div>
-                              <div className="font-medium">{log.projectName}</div>
-                              <div className="text-sm text-gray-600 dark:text-gray-400">{log.subprojectName}</div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-gray-500">Time Period</div>
-                              <div className="text-sm">{log.startTime} - {log.endTime}</div>
-                            </div>
-                            <div>
-                              {log.description && (
-                                <div className="text-sm">
-                                  <div className="text-gray-500">Description</div>
-                                  <div className="text-sm">{log.description}</div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-right">
-                              <div className="font-mono text-lg font-bold">{formatHours(log.duration)}h</div>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditLog(log)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            <Button onClick={goToToday} variant="outline" size="sm">
+              Today
+            </Button>
+          </div>
+
+          {/* Project Filter */}
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700">Filter by Project:</span>
+              <Select value={selectedProject} onValueChange={setSelectedProject}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Projects</SelectItem>
+                  {uniqueProjects.map(project => (
+                    <SelectItem key={project} value={project}>{project}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">
+                Total: {formatTime(totalDuration)}
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Edit Log Dialog */}
-      <Dialog open={!!editingLog} onOpenChange={() => setEditingLog(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Time Entry</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Duration (hours)</Label>
-              <Input
-                value={editFormData.duration}
-                onChange={(e) => setEditFormData({...editFormData, duration: e.target.value})}
-                placeholder="e.g., 2.5"
-                type="number"
-                step="0.1"
-              />
+      {/* Time Entries */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-gray-700">Time Entries ({filteredLogs.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredLogs.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No time entries for this day</p>
             </div>
-            <div>
-              <Label>Start Time</Label>
-              <Input
-                value={editFormData.startTime}
-                onChange={(e) => setEditFormData({...editFormData, startTime: e.target.value})}
-                placeholder="e.g., 09:00:00"
-              />
+          ) : (
+            <div className="space-y-3">
+              {filteredLogs.map(log => (
+                <div key={log.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-semibold text-gray-700">{log.projectName}</h3>
+                      <p className="text-sm text-gray-600">{log.subprojectName}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-green-600">
+                        {formatDuration(log.duration)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {log.startTime} - {log.endTime}
+                      </div>
+                    </div>
+                  </div>
+                  {log.description && (
+                    <p className="text-sm text-gray-600 mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                      {log.description}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
-            <div>
-              <Label>End Time</Label>
-              <Input
-                value={editFormData.endTime}
-                onChange={(e) => setEditFormData({...editFormData, endTime: e.target.value})}
-                placeholder="e.g., 11:30:00"
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={editFormData.description}
-                onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
-                placeholder="What did you work on?"
-                rows={3}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleSaveEdit} className="flex-1">
-                Save Changes
-              </Button>
-              <Button variant="outline" onClick={() => setEditingLog(null)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

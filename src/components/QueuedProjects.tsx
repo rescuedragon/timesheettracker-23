@@ -55,8 +55,18 @@ const QueuedProjects: React.FC<QueuedProjectsProps> = ({
         stoppingProject.projectId,
         stoppingProject.subprojectId
       );
+      onStopProject(stoppingProject.id);
+    } else {
+      // If no onLogTime callback, just stop the project
+      if (stoppingProject) {
+        onStopProject(stoppingProject.id);
+      }
     }
-    onStopProject(stoppingProject!.id);
+    setStoppingProject(null);
+    setDescription('');
+  };
+
+  const handleCancelStop = () => {
     setStoppingProject(null);
     setDescription('');
   };
@@ -105,7 +115,7 @@ const QueuedProjects: React.FC<QueuedProjectsProps> = ({
       </Card>
 
       {/* Stop Confirmation Dialog */}
-      <Dialog open={!!stoppingProject} onOpenChange={(open) => !open && setStoppingProject(null)}>
+      <Dialog open={!!stoppingProject} onOpenChange={(open) => !open && handleCancelStop()}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Log Time Entry</DialogTitle>
@@ -135,7 +145,7 @@ const QueuedProjects: React.FC<QueuedProjectsProps> = ({
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => setStoppingProject(null)}
+                  onClick={handleCancelStop}
                 >
                   Cancel
                 </Button>

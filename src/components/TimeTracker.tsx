@@ -214,14 +214,15 @@ const TimeTracker = () => {
         const currentProject = projects.find(p => p.id === selectedProjectId);
         const currentSubproject = currentProject?.subprojects.find(s => s.id === selectedSubprojectId);
         
-        if (currentProject) {
+        if (currentProject && currentSubproject) {
+          const currentElapsedTime = Math.floor((new Date().getTime() - new Date(state.startTime).getTime()) / 1000);
           const currentQueuedProject: QueuedProject = {
             id: Date.now().toString(),
             projectId: selectedProjectId,
             subprojectId: selectedSubprojectId,
             projectName: currentProject.name,
-            subprojectName: currentSubproject?.name || 'No subproject',
-            elapsedTime: state.elapsedTime,
+            subprojectName: currentSubproject.name,
+            elapsedTime: currentElapsedTime,
             startTime: new Date(state.startTime)
           };
           

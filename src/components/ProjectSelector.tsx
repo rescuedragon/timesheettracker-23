@@ -6,7 +6,6 @@ import FrequentProjects from './project-selector/FrequentProjects';
 import FrequentSubprojects from './project-selector/FrequentSubprojects';
 import ProjectSearch from './project-selector/ProjectSearch';
 import SubprojectSearch from './project-selector/SubprojectSearch';
-import EditSubprojectDialog from './project-selector/EditSubprojectDialog';
 import { useFrequentProjects } from '@/hooks/useFrequentProjects';
 import { useFrequentSubprojects } from '@/hooks/useFrequentSubprojects';
 
@@ -30,8 +29,6 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   onAddSubproject
 }) => {
   const [colorCodedEnabled, setColorCodedEnabled] = useState(false);
-  const [editingSubproject, setEditingSubproject] = useState<{id: string, name: string, projectId: string} | null>(null);
-  const [editSubprojectName, setEditSubprojectName] = useState('');
 
   const { frequentProjects, trackProjectSelection } = useFrequentProjects(projects);
   const { frequentSubprojects, trackSubprojectSelection } = useFrequentSubprojects(selectedProjectId, projects);
@@ -100,40 +97,6 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
     }
   };
 
-  const handleEditSubproject = (subproject: any) => {
-    setEditingSubproject({
-      id: subproject.id,
-      name: subproject.name,
-      projectId: selectedProjectId
-    });
-    setEditSubprojectName(subproject.name);
-  };
-
-  const handleSaveSubprojectEdit = () => {
-    if (editingSubproject && editSubprojectName.trim()) {
-      window.dispatchEvent(new CustomEvent('update-subproject', {
-        detail: {
-          projectId: editingSubproject.projectId,
-          subprojectId: editingSubproject.id,
-          newName: editSubprojectName.trim()
-        }
-      }));
-      setEditingSubproject(null);
-      setEditSubprojectName('');
-    }
-  };
-
-  const handleDeleteSubproject = (subprojectId: string) => {
-    if (selectedProject && window.confirm('Are you sure you want to delete this subproject?')) {
-      window.dispatchEvent(new CustomEvent('delete-subproject', {
-        detail: {
-          projectId: selectedProject.id,
-          subprojectId: subprojectId
-        }
-      }));
-    }
-  };
-
   return (
     <div className="space-y-6 flex flex-col h-full">
       <ProjectSearch
@@ -155,8 +118,6 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
         selectedSubprojectId={selectedSubprojectId}
         colorCodedEnabled={colorCodedEnabled}
         onSubprojectSelect={handleSubprojectSelectChange}
-        onEditSubproject={handleEditSubproject}
-        onDeleteSubproject={handleDeleteSubproject}
       />
 
       {selectedProject && (
@@ -168,14 +129,6 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({
           onSubprojectSelect={handleFrequentSubprojectSelect}
         />
       )}
-
-      <EditSubprojectDialog
-        editingSubproject={editingSubproject}
-        editSubprojectName={editSubprojectName}
-        onEditSubprojectNameChange={setEditSubprojectName}
-        onSaveEdit={handleSaveSubprojectEdit}
-        onCancel={() => setEditingSubproject(null)}
-      />
     </div>
   );
 };
