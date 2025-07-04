@@ -52,6 +52,13 @@ const ExcelView: React.FC = () => {
     
     const handleStorageChange = () => {
       setColorCodedEnabled(isColorCodedProjectsEnabled());
+      
+      // Update progress bar settings
+      const savedEnabled = localStorage.getItem('progressbar-enabled');
+      const savedColor = localStorage.getItem('progressbar-color');
+      
+      setProgressBarEnabled(savedEnabled ? JSON.parse(savedEnabled) : false);
+      setProgressBarColor(savedColor || '#10b981');
     };
     
     window.addEventListener('storage', handleStorageChange);
