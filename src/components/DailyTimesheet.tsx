@@ -66,48 +66,48 @@ const DailyTimesheet: React.FC<DailyTimesheetProps> = ({ timeLogs, onSwitchToWee
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in">
       {/* Header with Navigation */}
-      <Card>
-        <CardHeader>
+      <Card className="bg-gradient-secondary-modern border-border/60 shadow-modern-lg">
+        <CardHeader className="pb-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-gray-700">
-              <Calendar className="h-5 w-5" />
-              Daily View
+            <CardTitle className="flex items-center gap-3 text-foreground">
+              <Calendar className="h-6 w-6 text-primary" />
+              <span className="text-xl">Daily View</span>
             </CardTitle>
-            <Button onClick={onSwitchToWeeklyView} variant="outline" size="sm">
+            <Button onClick={onSwitchToWeeklyView} variant="secondary" size="sm" className="btn-modern shadow-modern-sm">
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               Weekly View
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Button onClick={goToPreviousDay} variant="outline" size="sm">
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button onClick={goToPreviousDay} variant="outline" size="sm" className="btn-modern shadow-modern-sm">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <div className="text-lg font-semibold text-gray-700 min-w-[200px] text-center">
+              <div className="text-xl font-bold text-foreground min-w-[300px] text-center bg-muted/30 px-6 py-3 rounded-xl">
                 {format(selectedDate, 'EEEE, MMMM d, yyyy')}
               </div>
-              <Button onClick={goToNextDay} variant="outline" size="sm">
+              <Button onClick={goToNextDay} variant="outline" size="sm" className="btn-modern shadow-modern-sm">
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            <Button onClick={goToToday} variant="outline" size="sm">
+            <Button onClick={goToToday} variant="secondary" size="sm" className="btn-modern shadow-modern-sm">
               Today
             </Button>
           </div>
 
           {/* Project Filter */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Filter by Project:</span>
+          <div className="flex items-center justify-between bg-muted/30 p-4 rounded-xl">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-semibold text-foreground">Filter by Project:</span>
               <Select value={selectedProject} onValueChange={setSelectedProject}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-52 h-10 shadow-modern-sm border-2 border-border">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card border-border/60 shadow-modern-lg">
                   <SelectItem value="all">All Projects</SelectItem>
                   {uniqueProjects.map(project => (
                     <SelectItem key={project} value={project}>{project}</SelectItem>
@@ -115,9 +115,9 @@ const DailyTimesheet: React.FC<DailyTimesheetProps> = ({ timeLogs, onSwitchToWee
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">
+            <div className="flex items-center gap-3 bg-accent/10 px-4 py-2 rounded-xl">
+              <Clock className="h-5 w-5 text-accent" />
+              <span className="text-base font-bold text-foreground">
                 Total: {formatTime(totalDuration)}
               </span>
             </div>
@@ -126,54 +126,64 @@ const DailyTimesheet: React.FC<DailyTimesheetProps> = ({ timeLogs, onSwitchToWee
       </Card>
 
       {/* Time Entries */}
-      <Card>
+      <Card className="bg-gradient-secondary-modern border-border/60 shadow-modern-lg">
         <CardHeader>
-          <CardTitle className="text-gray-700">Time Entries ({filteredLogs.length})</CardTitle>
+          <CardTitle className="flex items-center gap-3 text-foreground">
+            <span className="text-xl">Time Entries</span>
+            <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full font-semibold">
+              {filteredLogs.length}
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {filteredLogs.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No time entries for this day</p>
+            <div className="text-center py-12 text-muted-foreground">
+              <Clock className="h-16 w-16 mx-auto mb-6 opacity-40" />
+              <p className="text-lg font-medium">No time entries for this day</p>
+              <p className="text-sm mt-2">Start tracking time to see entries here</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {Object.entries(groupedLogs).map(([projectName, logs]) => {
                 const projectTotalDuration = logs.reduce((sum, log) => sum + log.duration, 0);
                 
                 return (
-                  <div key={projectName} className="border rounded-lg overflow-hidden">
+                  <div key={projectName} className="border border-border/60 rounded-xl overflow-hidden shadow-modern-md hover:shadow-modern-lg transition-all duration-300 animate-scale-in">
                     {/* Project Header */}
-                    <div className="bg-gray-100 dark:bg-gray-800 p-3 border-b">
+                    <div className="bg-primary/5 p-5 border-b border-border/40">
                       <div className="flex justify-between items-center">
-                        <h3 className="font-semibold text-gray-700 dark:text-gray-200">{projectName}</h3>
-                        <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                          {formatDuration(projectTotalDuration)}
+                        <h3 className="text-lg font-bold text-foreground">{projectName}</h3>
+                        <div className="flex items-center gap-2 bg-accent/10 px-4 py-2 rounded-lg">
+                          <Clock className="h-4 w-4 text-accent" />
+                          <span className="text-lg font-bold text-accent">
+                            {formatDuration(projectTotalDuration)}
+                          </span>
                         </div>
                       </div>
                     </div>
                     
                     {/* Project Logs */}
-                    <div className="divide-y">
+                    <div className="divide-y divide-border/40">
                       {logs.map(log => (
-                        <div key={log.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">{log.subprojectName}</p>
+                        <div key={log.id} className="p-5 hover:bg-accent/5 transition-all duration-200 group">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1">
+                              <p className="text-base font-medium text-foreground mb-1">{log.subprojectName}</p>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                <span>{log.startTime} - {log.endTime}</span>
+                              </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-md font-semibold text-green-600 dark:text-green-400">
+                              <div className="text-xl font-bold text-accent group-hover:scale-105 transition-transform duration-200">
                                 {formatDuration(log.duration)}
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {log.startTime} - {log.endTime}
                               </div>
                             </div>
                           </div>
                           {log.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                              {log.description}
-                            </p>
+                            <div className="mt-3 p-3 bg-muted/40 rounded-lg border border-border/30">
+                              <p className="text-sm text-foreground italic">{log.description}</p>
+                            </div>
                           )}
                         </div>
                       ))}

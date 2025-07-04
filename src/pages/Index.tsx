@@ -37,47 +37,51 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 relative">
-      <div className="fixed top-4 left-4 z-50">
+    <div className="min-h-screen bg-gradient-modern relative">
+      <div className="fixed top-6 left-6 z-50">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setIsDarkMode(!isDarkMode)}
-          className="p-2"
+          className="p-3 rounded-full shadow-modern-md hover:shadow-modern-lg bg-card/80 backdrop-blur-sm border border-border/60"
         >
           {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
       </div>
       
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-6 right-6 z-50">
         <Settings />
       </div>
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-200 mb-2">Team Timesheet</h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400">Track your time across projects and subprojects</p>
+      <div className="container mx-auto px-6 py-12">
+        <div className="text-center mb-10 animate-fade-in">
+          <h1 className="text-5xl font-bold text-foreground mb-4 tracking-tight">Team Timesheet</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Track your time across projects and subprojects with precision and style</p>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="tracker">Time Tracker</TabsTrigger>
-            <TabsTrigger value="data">Timesheet</TabsTrigger>
-            <TabsTrigger value="holidays" className="flex items-center gap-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full animate-slide-up">
+          <TabsList className="grid w-full grid-cols-3 mb-8 h-14 rounded-xl bg-muted p-2 shadow-modern-md">
+            <TabsTrigger value="tracker" className="rounded-lg font-semibold text-base h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-modern-md transition-all duration-200">
+              Time Tracker
+            </TabsTrigger>
+            <TabsTrigger value="data" className="rounded-lg font-semibold text-base h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-modern-md transition-all duration-200">
+              Timesheet
+            </TabsTrigger>
+            <TabsTrigger value="holidays" className="rounded-lg font-semibold text-base h-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-modern-md transition-all duration-200 flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               Holidays
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="tracker">
+          <TabsContent value="tracker" className="animate-fade-in">
             <TimeTracker />
           </TabsContent>
           
-          <TabsContent value="data">
+          <TabsContent value="data" className="animate-fade-in">
             <ExcelView />
           </TabsContent>
           
-          <TabsContent value="holidays">
+          <TabsContent value="holidays" className="animate-fade-in">
             <Holidays />
           </TabsContent>
         </Tabs>

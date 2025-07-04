@@ -462,25 +462,25 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
   const { weekStart, weekEnd, days, weekTotal } = getCurrentDateRangeData();
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-900 dark:to-gray-900 border-gray-200 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center justify-center flex-1">
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" onClick={prevWeek} className="hover:bg-gray-100 dark:hover:bg-gray-800 flex-shrink-0">
+    <div className="space-y-8 animate-fade-in">
+      <Card className="bg-gradient-secondary-modern border-border/60 shadow-modern-lg">
+        <CardHeader className="pb-6">
+          <CardTitle className="flex flex-col space-y-4">
+            <div className="flex items-center justify-center">
+              <div className="flex items-center gap-4">
+                <Button variant="outline" size="sm" onClick={prevWeek} className="btn-modern shadow-modern-sm">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="flex items-center gap-2 text-lg font-bold text-gray-700 dark:text-gray-300">
-                    <Calendar className="h-5 w-5 flex-shrink-0" />
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 text-xl font-bold text-foreground">
+                    <Calendar className="h-6 w-6 text-primary" />
                     <span className="whitespace-nowrap">{getDisplayTitle()}</span>
                   </div>
                   <Select value={selectedRange} onValueChange={handleRangeSelect}>
-                    <SelectTrigger className="w-44 h-9 border-2 border-gray-200 dark:border-gray-600">
+                    <SelectTrigger className="w-48 h-11 border-2 border-border shadow-modern-sm focus:shadow-modern-md transition-all duration-200">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-card border-border/60 shadow-modern-lg">
                       <SelectItem value="current-week">Current Week</SelectItem>
                       <SelectItem value="this-month">This Month</SelectItem>
                       <SelectItem value="previous-month">Previous Month</SelectItem>
@@ -491,75 +491,77 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
                     </SelectContent>
                   </Select>
                 </div>
-                <Button variant="outline" size="sm" onClick={nextWeek} className="hover:bg-gray-100 dark:hover:bg-gray-800 flex-shrink-0">
+                <Button variant="outline" size="sm" onClick={nextWeek} className="btn-modern shadow-modern-sm">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-            <div className="text-center mt-2">
-              <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+            <div className="text-center">
+              <div className="text-base text-muted-foreground font-medium bg-muted/50 px-4 py-2 rounded-lg inline-block">
                 {weekStart.toLocaleDateString()} - {weekEnd.toLocaleDateString()}
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <div className="flex items-center gap-2 text-lg font-bold text-gray-700 dark:text-gray-300">
-                  <BarChart3 className="h-5 w-5" />
-                  {formatHours(weekTotal)} hrs
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 bg-accent/10 px-4 py-3 rounded-xl">
+                <BarChart3 className="h-6 w-6 text-accent" />
+                <div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {formatHours(weekTotal)} hrs
+                  </div>
+                  <div className="text-sm text-muted-foreground font-medium">Total Time</div>
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Total</div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={exportToCSV} className="hover:bg-indigo-100 dark:hover:bg-indigo-900">
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={exportToCSV} className="btn-modern shadow-modern-sm">
                   <Download className="h-4 w-4 mr-2" />
                   Export CSV
                 </Button>
-                <Button variant="outline" onClick={() => setIsDetailedViewOpen(true)} className="hover:bg-indigo-100 dark:hover:bg-indigo-900">
+                <Button variant="secondary" onClick={() => setIsDetailedViewOpen(true)} className="btn-modern shadow-modern-sm">
                   Excel View
                 </Button>
               </div>
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-2">
           {selectedRange === 'current-week' ? (
             <div className="grid grid-cols-5 gap-4">
               {days.map(day => (
-                <div key={day.dayName} className="text-center">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-                    <div className="font-semibold text-gray-700 dark:text-gray-300 mb-1">{day.dayName}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                <div key={day.dayName} className="text-center animate-scale-in">
+                  <div className="bg-card rounded-xl p-6 shadow-modern-md hover:shadow-modern-lg transition-all duration-300 border border-border/60 hover:border-primary/30 group">
+                    <div className="font-semibold text-foreground mb-2 text-lg">{day.dayName}</div>
+                    <div className="text-sm text-muted-foreground mb-4 bg-muted/30 px-2 py-1 rounded-md inline-block">
                       {day.date.getDate()}/{day.date.getMonth() + 1}
                     </div>
                     <Button
                       variant="ghost"
-                      className="w-full h-16 flex flex-col items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                      className="w-full h-20 flex flex-col items-center justify-center hover:bg-accent/10 rounded-xl transition-all duration-200 group-hover:scale-105"
                       onClick={() => handleDayTimeClick(day.logs)}
                     >
-                      <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
+                      <div className="text-3xl font-bold text-foreground mb-1">
                         {formatHours(day.totalHours)}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">hours</div>
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">hours</div>
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-7 gap-2 max-h-80 overflow-y-auto">
+            <div className="grid grid-cols-7 gap-3 max-h-80 overflow-y-auto scroll-modern">
               {days.map((day, index) => (
-                <div key={index} className="text-center">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-                    <div className="font-semibold text-gray-700 dark:text-gray-300 text-xs mb-1">{day.dayName}</div>
+                <div key={index} className="text-center animate-scale-in">
+                  <div className="bg-card rounded-lg p-3 shadow-modern-sm hover:shadow-modern-md transition-all duration-300 border border-border/60 hover:border-primary/30 group">
+                    <div className="font-semibold text-foreground text-sm mb-2">{day.dayName}</div>
                     <Button
                       variant="ghost"
-                      className="w-full h-12 flex flex-col items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                      className="w-full h-14 flex flex-col items-center justify-center hover:bg-accent/10 rounded-lg transition-all duration-200 group-hover:scale-105"
                       onClick={() => handleDayTimeClick(day.logs)}
                     >
-                      <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
+                      <div className="text-xl font-bold text-foreground">
                         {formatHours(day.totalHours)}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">hrs</div>
+                      <div className="text-xs text-muted-foreground font-medium">hrs</div>
                     </Button>
                   </div>
                 </div>
