@@ -193,62 +193,51 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
   };
 
   return (
-    <div className="space-y-6 flex flex-col h-full">
+    <div className="space-y-6 flex flex-col h-full bg-white">
       {/* Project Info Display */}
       {selectedProject && selectedSubproject && (
-        <div className="text-center space-y-2" style={getProjectBackgroundStyle()}>
-          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+        <div className="text-center space-y-3 px-6 py-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="text-lg font-medium text-gray-900">
             {selectedProject.name}
           </div>
-          <div className="text-md text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-gray-600">
             {selectedSubproject.name}
           </div>
         </div>
       )}
       
-      {/* Enhanced Stopwatch Display */}
-      <div className="text-center">
-        <div className="relative mb-8">
-          {/* Timer Circle Background */}
-          <div className="w-48 h-48 mx-auto rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 shadow-inner flex items-center justify-center border-8 border-white dark:border-slate-900 shadow-2xl">
-            <div className="text-center">
-              <div className="text-4xl font-mono font-bold text-gray-800 dark:text-gray-200 mb-2 tracking-wider">
-                {formatTime(elapsedTime)}
-              </div>
-              {isRunning && (
-                <div className="flex justify-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                </div>
-              )}
-            </div>
+      {/* Google Material Design Timer */}
+      <div className="flex-1 flex flex-col items-center justify-center space-y-8 px-6">
+        {/* Time Display */}
+        <div className="text-center">
+          <div className="text-6xl font-mono font-light text-gray-900 tracking-wider mb-2">
+            {formatTime(elapsedTime)}
           </div>
-          
-          {/* Status Indicator */}
           {isRunning && (
-            <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full shadow-lg flex items-center justify-center">
-              <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+            <div className="flex justify-center">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             </div>
           )}
         </div>
         
         {/* Control Buttons */}
-        <div className="flex justify-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
           {!isRunning ? (
             <Button
               onClick={handleStart}
               disabled={!canStart}
-              className="flex items-center gap-2 px-8 py-4 text-lg bg-green-600 hover:bg-green-700 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-medium text-base shadow-md hover:shadow-lg transition-all duration-200"
             >
-              <Play className="h-5 w-5" />
+              <Play className="h-5 w-5 mr-2" />
               Start
             </Button>
           ) : (
             <Button
               onClick={handleStop}
               disabled={!canPauseOrStop}
-              className="flex items-center gap-2 px-8 py-4 text-lg bg-red-600 hover:bg-red-700 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-medium text-base shadow-md hover:shadow-lg transition-all duration-200"
             >
-              <Square className="h-5 w-5" />
+              <Square className="h-5 w-5 mr-2" />
               Stop
             </Button>
           )}
@@ -257,34 +246,34 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
             onClick={handlePause}
             disabled={!canPauseOrStop}
             variant="outline"
-            className="flex items-center gap-2 px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2"
+            className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 rounded-full font-medium text-base shadow-md hover:shadow-lg transition-all duration-200"
           >
-            <Pause className="h-5 w-5" />
+            <Pause className="h-5 w-5 mr-2" />
             Pause
           </Button>
         </div>
       </div>
 
-      {/* View Data Button */}
-      <div className="mt-auto">
+      {/* View Time Data Button */}
+      <div className="px-6 pb-6">
         <Button
           onClick={onSwitchToExcelView}
-          variant="outline"
-          className="w-full flex items-center gap-2 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          variant="ghost"
+          className="w-full text-gray-600 hover:text-gray-800 hover:bg-gray-50 py-3 rounded-lg font-medium transition-colors"
         >
-          <Eye className="h-4 w-4" />
+          <Eye className="h-4 w-4 mr-2" />
           View Time Data
         </Button>
       </div>
 
       {/* Status Message */}
       {!selectedProject || !selectedSubproject ? (
-        <div className="text-center text-gray-500 dark:text-gray-400 text-sm bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
+        <div className="text-center text-gray-500 text-sm bg-gray-50 p-4 rounded-lg mx-6 mb-6">
           Please select a project and subproject to start tracking time
         </div>
       ) : (
-        <div className="text-center text-gray-600 dark:text-gray-300 text-sm bg-slate-50 dark:bg-slate-800 p-3 rounded-lg">
-          <Clock className="h-4 w-4 inline mr-1" />
+        <div className="text-center text-gray-600 text-sm bg-gray-50 p-3 rounded-lg mx-6 mb-6 flex items-center justify-center">
+          <Clock className="h-4 w-4 mr-2" />
           Ready to track time for {selectedProject.name} → {selectedSubproject.name}
         </div>
       )}

@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Target, Search } from 'lucide-react';
+import { Target, Search, Edit, Trash2 } from 'lucide-react';
 import { Project } from '../TimeTracker';
 import { generateProjectColor } from '@/lib/projectColors';
+import EditSubprojectDialog from './EditSubprojectDialog';
 
 interface SubprojectSearchProps {
   selectedProject: Project | undefined;
@@ -22,6 +23,8 @@ const SubprojectSearch: React.FC<SubprojectSearchProps> = ({
   onSubprojectSelect
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingSubproject, setEditingSubproject] = useState<{id: string, name: string, projectId: string} | null>(null);
+  const [editSubprojectName, setEditSubprojectName] = useState('');
 
   const selectedSubproject = selectedProject?.subprojects.find(s => s.id === selectedSubprojectId);
   
@@ -41,6 +44,49 @@ const SubprojectSearch: React.FC<SubprojectSearchProps> = ({
   const handleSubprojectSelect = (subprojectId: string) => {
     onSubprojectSelect(subprojectId);
     setSearchTerm('');
+  };
+
+  const handleEditSubproject = (subproject: { id: string; name: string }) => {
+    if (selectedProject) {
+      setEditingSubproject({
+        id: subproject.id,
+        name: subproject.name,
+        projectId: selectedProject.id
+      });
+      setEditSubprojectName(subproject.name);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editingSubproject && editSubprojectName.trim()) {
+      // Dispatch custom event to update subproject
+      window.dispatchEvent(new CustomEvent('update-subproject', {
+        detail: {
+          projectId: editingSubproject.projectId,
+          subprojectId: editingSubproject.id,
+          newName: editSubprojectName.trim()
+        }
+      }));
+      setEditingSubproject(null);
+      setEditSubprojectName('');
+    }
+  };
+
+  const handleDeleteSubproject = (subprojectId: string) => {
+    if (selectedProject && confirm('Are you sure you want to delete this subproject?')) {
+      // Dispatch custom event to delete subproject
+      window.dispatchEvent(new CustomEvent('delete-subproject', {
+        detail: {
+          projectId: selectedProject.id,
+          subprojectId: subprojectId
+        }
+      }));
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSubproject(null);
+    setEditSubprojectName('');
   };
 
   return (
@@ -74,13 +120,47 @@ const SubprojectSearch: React.FC<SubprojectSearchProps> = ({
               </div>
             )}
             {filteredSubprojects.map(subproject => (
-              <SelectItem key={subproject.id} value={subproject.id}>
-                {subproject.name}
-              </SelectItem>
+              <div key={subproject.id} className="flex items-center justify-between group">
+                <SelectItem value={subproject.id} className="flex-1">
+                  {subproject.name}
+                </SelectItem>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity mr-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditSubproject(subproject);
+                    }}
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0 text-red-600 hover:text-red-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteSubproject(subproject.id);
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
             ))}
           </SelectContent>
         </Select>
       </div>
+      
+      <EditSubprojectDialog
+        editingSubproject={editingSubproject}
+        editSubprojectName={editSubprojectName}
+        onEditSubprojectNameChange={setEditSubprojectName}
+        onSaveEdit={handleSaveEdit}
+        onCancel={handleCancelEdit}
+      />
     </div>
   );
 };

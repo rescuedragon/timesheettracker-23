@@ -336,16 +336,16 @@ const ExcelView: React.FC = () => {
                       </div>
                       
                       <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                        <table className="w-full border-collapse border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                           <thead>
                             <tr className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900">
-                              <th className="border border-gray-200 dark:border-gray-700 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Project</th>
-                              <th className="border border-gray-200 dark:border-gray-700 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Subproject</th>
-                              <th className="border border-gray-200 dark:border-gray-700 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Start</th>
-                              <th className="border border-gray-200 dark:border-gray-700 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">End</th>
-                              <th className="border border-gray-200 dark:border-gray-700 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Duration (hrs)</th>
-                              <th className="border border-gray-200 dark:border-gray-700 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Description</th>
-                              <th className="border border-gray-200 dark:border-gray-700 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Actions</th>
+                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Project</th>
+                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Subproject</th>
+                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Start</th>
+                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">End</th>
+                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Duration (hrs)</th>
+                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Description</th>
+                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -357,17 +357,17 @@ const ExcelView: React.FC = () => {
                                   className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                                   style={getRowBackgroundStyle(log.projectName)}
                                 >
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-900 dark:text-gray-100">{log.projectName}</td>
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.subprojectName}</td>
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.startTime}</td>
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.endTime}</td>
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">
-                                    <span className="font-mono font-bold text-red-700 dark:text-red-400">
-                                      {formatHours(log.duration)}
-                                    </span>
-                                  </td>
-                                  <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.description || '-'}</td>
-                                   <td className="border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">
+                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm font-medium text-gray-900 dark:text-gray-100">{log.projectName}</td>
+                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.subprojectName}</td>
+                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.startTime}</td>
+                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.endTime}</td>
+                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                                     <span className="font-mono font-bold text-green-700 dark:text-green-400">
+                                       {formatHours(log.duration)}
+                                     </span>
+                                   </td>
+                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.description || '-'}</td>
+                                    <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
                                      <div className="flex gap-1">
                                        <Button
                                          onClick={() => handleEditLog(log)}

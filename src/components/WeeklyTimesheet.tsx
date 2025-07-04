@@ -363,13 +363,21 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
   const nextWeek = () => {
     const newWeekStart = new Date(currentWeekStart);
     newWeekStart.setDate(newWeekStart.getDate() + 7);
+    const newWeekEnd = new Date(newWeekStart);
+    newWeekEnd.setDate(newWeekStart.getDate() + 6);
+    newWeekEnd.setHours(23, 59, 59, 999);
     setCurrentWeekStart(newWeekStart);
+    setDateRange({ start: newWeekStart, end: newWeekEnd });
   };
 
   const prevWeek = () => {
     const newWeekStart = new Date(currentWeekStart);
     newWeekStart.setDate(newWeekStart.getDate() - 7);
+    const newWeekEnd = new Date(newWeekStart);
+    newWeekEnd.setDate(newWeekStart.getDate() + 6);
+    newWeekEnd.setHours(23, 59, 59, 999);
     setCurrentWeekStart(newWeekStart);
+    setDateRange({ start: newWeekStart, end: newWeekEnd });
   };
 
   const toggleProjectExpansion = (projectId: string) => {
