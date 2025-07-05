@@ -252,13 +252,13 @@ const TimeTracker = () => {
 
   return (
     <div className="relative">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[650px]">
         {/* Left Panel - Project Selection */}
-        <Card className="h-full">
-          <CardHeader>
-            <CardTitle className="text-center">Select Project & Subproject</CardTitle>
+        <Card className="h-full shadow-lg border-0 bg-gradient-modern">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-center text-lg font-medium text-foreground">Select Project & Subproject</CardTitle>
           </CardHeader>
-          <CardContent className="h-full">
+          <CardContent className="h-full pt-0">
             <ProjectSelector
               projects={projects}
               selectedProjectId={selectedProjectId}
@@ -272,11 +272,11 @@ const TimeTracker = () => {
         </Card>
 
         {/* Right Panel - Stopwatch */}
-        <Card className="h-full">
-          <CardHeader>
-            <CardTitle className="text-center">Stopwatch</CardTitle>
+        <Card className="h-full shadow-lg border-0 bg-gradient-modern">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-center text-lg font-medium text-foreground">Stopwatch</CardTitle>
           </CardHeader>
-          <CardContent className="h-full">
+          <CardContent className="h-full pt-0">
             <StopwatchPanel
               selectedProject={selectedProject}
               selectedSubproject={selectedSubproject}

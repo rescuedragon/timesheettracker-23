@@ -9,50 +9,57 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Black and White Design System */
+    /* Google Material Design System - Clean White & Black */
     --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --foreground: 0 0% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 0 0% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 0 0% 15%;
 
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 0 0% 10%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --primary-hover: 0 0% 15%;
 
-    --secondary: 0 0% 97%;
-    --secondary-foreground: 0 0% 0%;
-    --secondary-hover: 0 0% 94%;
+    --secondary: 0 0% 98%;
+    --secondary-foreground: 0 0% 15%;
+    --secondary-hover: 0 0% 96%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 0%;
+    --muted: 0 0% 98%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 0 0% 90%;
-    --accent-foreground: 0 0% 0%;
-    --accent-hover: 0 0% 85%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 15%;
+    --accent-hover: 0 0% 94%;
 
-    --destructive: 0 0% 20%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --warning: 0 0% 30%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 25 95% 53%;
+    --warning-foreground: 0 0% 9%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 0 0% 0%;
+    --border: 0 0% 91%;
+    --input: 0 0% 96%;
+    --ring: 0 0% 9%;
 
-    --success: 0 0% 25%;
-    --info: 0 0% 35%;
+    --success: 142 71% 45%;
+    --info: 221 83% 53%;
 
-    --radius: 0.75rem;
+    --radius: 12px;
 
-    /* White gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(0 0% 97%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 98%) 0%, hsl(0 0% 95%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(0 0% 95%) 0%, hsl(0 0% 90%) 100%);
+    /* Google Material Design Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 99%) 0%, hsl(0 0% 97%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(0 0% 98%) 0%, hsl(0 0% 96%) 100%);
+
+    /* Google Material Design Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 0%;
@@ -65,47 +72,54 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 0%;
+    --background: 0 0% 9%;
+    --foreground: 0 0% 85%;
 
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 0%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 85%;
 
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 0%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 85%;
 
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-    --primary-hover: 0 0% 90%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --primary-hover: 0 0% 94%;
 
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 0%;
-    --secondary-hover: 0 0% 20%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 85%;
+    --secondary-hover: 0 0% 22%;
 
     --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 0%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 0 0% 25%;
-    --accent-foreground: 0 0% 0%;
-    --accent-hover: 0 0% 30%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 85%;
+    --accent-hover: 0 0% 22%;
 
-    --destructive: 0 0% 80%;
-    --destructive-foreground: 0 0% 0%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --warning: 0 0% 70%;
-    --warning-foreground: 0 0% 0%;
+    --warning: 25 95% 53%;
+    --warning-foreground: 0 0% 9%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 0 0% 100%;
+    --border: 0 0% 22%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 98%;
 
-    --success: 0 0% 75%;
-    --info: 0 0% 65%;
+    --success: 142 71% 45%;
+    --info: 221 83% 53%;
 
-    /* White gradients for dark mode */
-    --gradient-primary: linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(0 0% 15%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 12%) 0%, hsl(0 0% 18%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(0 0% 20%) 0%, hsl(0 0% 25%) 100%);
+    /* Google Material Design Gradients - Dark Mode */
+    --gradient-primary: linear-gradient(135deg, hsl(0 0% 12%) 0%, hsl(0 0% 10%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 15%) 0%, hsl(0 0% 12%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(0 0% 18%) 0%, hsl(0 0% 15%) 100%);
+
+    /* Adjusted shadows for dark mode */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 
     --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 0%;
@@ -124,14 +138,24 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-medium;
+    @apply bg-background text-foreground;
+    font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.6;
   }
 
-  /* Typography improvements */
+  /* Google Material Design Typography */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    @apply font-medium tracking-tight text-foreground;
+    font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
+
+  h1 { @apply text-4xl font-normal; }
+  h2 { @apply text-3xl font-normal; }
+  h3 { @apply text-2xl font-medium; }
+  h4 { @apply text-xl font-medium; }
+  h5 { @apply text-lg font-medium; }
+  h6 { @apply text-base font-medium; }
 
   /* Modern animations */
   .animate-fade-in {

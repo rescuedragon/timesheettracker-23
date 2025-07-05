@@ -77,34 +77,35 @@ const QueuedProjects: React.FC<QueuedProjectsProps> = ({
 
   return (
     <>
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Queued Projects</CardTitle>
+      <Card className="mt-8 shadow-lg border-0 bg-gradient-secondary-modern">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-medium text-foreground">Queued Projects</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {queuedProjects.map(project => (
-              <div key={project.id} className="flex items-center justify-between p-3 border rounded-lg bg-slate-50 dark:bg-slate-800">
+              <div key={project.id} className="flex items-center justify-between p-5 border border-border/40 rounded-xl bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200">
                 <div className="flex-1">
-                  <div className="font-medium">{project.projectName}</div>
-                  <div className="text-sm text-muted-foreground">{project.subprojectName}</div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400">Time: {formatTime(project.elapsedTime)}</div>
+                  <div className="font-medium text-foreground">{project.projectName}</div>
+                  <div className="text-sm text-muted-foreground mt-1">{project.subprojectName}</div>
+                  <div className="text-sm text-muted-foreground/80 mt-1">Time: {formatTime(project.elapsedTime)}</div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <Button
                     size="sm"
                     onClick={() => onResumeProject(project)}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-success hover:bg-success/90 text-white px-4 py-2 shadow-sm"
                   >
-                    <Play className="h-4 w-4 mr-1" />
+                    <Play className="h-4 w-4 mr-2" />
                     Resume
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleStopClick(project)}
+                    className="border-border/60 hover:bg-accent/50 px-4 py-2 shadow-sm"
                   >
-                    <Square className="h-4 w-4 mr-1" />
+                    <Square className="h-4 w-4 mr-2" />
                     Stop
                   </Button>
                 </div>
@@ -116,36 +117,38 @@ const QueuedProjects: React.FC<QueuedProjectsProps> = ({
 
       {/* Stop Confirmation Dialog */}
       <Dialog open={!!stoppingProject} onOpenChange={(open) => !open && handleCancelStop()}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Log Time Entry</DialogTitle>
+            <DialogTitle className="text-xl font-medium">Log Time Entry</DialogTitle>
           </DialogHeader>
           {stoppingProject && (
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded">
-                <div className="font-medium">{stoppingProject.projectName}</div>
+            <div className="space-y-6">
+              <div className="p-5 bg-muted/50 rounded-xl border border-border/40">
+                <div className="font-medium text-foreground">{stoppingProject.projectName}</div>
                 <div className="text-sm text-muted-foreground">{stoppingProject.subprojectName}</div>
-                <div className="text-sm font-mono mt-1">Duration: {formatTime(stoppingProject.elapsedTime)}</div>
+                <div className="text-sm font-mono mt-2 text-foreground">Duration: {formatTime(stoppingProject.elapsedTime)}</div>
               </div>
               
               <div>
-                <Label>Description (optional)</Label>
+                <Label className="text-sm font-medium text-foreground">Description (optional)</Label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What did you work on?"
                   rows={3}
+                  className="mt-2 border-border/60 bg-input/50 focus:bg-background"
                 />
               </div>
               
-              <div className="flex gap-2">
-                <Button onClick={handleConfirmStop} className="flex-1">
+              <div className="flex gap-3">
+                <Button onClick={handleConfirmStop} className="flex-1 py-3">
                   <Save className="h-4 w-4 mr-2" />
                   Save & Stop
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={handleCancelStop}
+                  className="px-6 py-3"
                 >
                   Cancel
                 </Button>

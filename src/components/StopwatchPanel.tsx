@@ -193,29 +193,29 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
   };
 
   return (
-    <div className="space-y-6 flex flex-col h-full bg-white">
+    <div className="space-y-6 flex flex-col h-full bg-gradient-modern">
       {/* Project Info Display */}
       {selectedProject && selectedSubproject && (
-        <div className="text-center space-y-3 px-6 py-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="text-lg font-medium text-gray-900">
+        <div className="text-center space-y-2 px-6 py-5 bg-card/50 rounded-xl border border-border/40 shadow-sm backdrop-blur-sm">
+          <div className="text-lg font-medium text-foreground">
             {selectedProject.name}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             {selectedSubproject.name}
           </div>
         </div>
       )}
       
       {/* Google Material Design Timer */}
-      <div className="flex-1 flex flex-col items-center justify-center space-y-8 px-6">
+      <div className="flex-1 flex flex-col items-center justify-center space-y-10 px-6">
         {/* Time Display */}
         <div className="text-center">
-          <div className="text-6xl font-mono font-light text-gray-900 tracking-wider mb-2">
+          <div className="text-7xl font-light text-foreground tracking-wider mb-3 font-mono">
             {formatTime(elapsedTime)}
           </div>
           {isRunning && (
             <div className="flex justify-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
             </div>
           )}
         </div>
@@ -226,18 +226,18 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
             <Button
               onClick={handleStart}
               disabled={!canStart}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-medium text-base shadow-md hover:shadow-lg transition-all duration-200"
+              className="bg-success hover:bg-success/90 text-white px-10 py-4 rounded-full font-medium text-lg shadow-md hover:shadow-lg transition-all duration-200 border-0"
             >
-              <Play className="h-5 w-5 mr-2" />
+              <Play className="h-6 w-6 mr-3" />
               Start
             </Button>
           ) : (
             <Button
               onClick={handleStop}
               disabled={!canPauseOrStop}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-medium text-base shadow-md hover:shadow-lg transition-all duration-200"
+              className="bg-destructive hover:bg-destructive/90 text-white px-10 py-4 rounded-full font-medium text-lg shadow-md hover:shadow-lg transition-all duration-200 border-0"
             >
-              <Square className="h-5 w-5 mr-2" />
+              <Square className="h-6 w-6 mr-3" />
               Stop
             </Button>
           )}
@@ -246,9 +246,9 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
             onClick={handlePause}
             disabled={!canPauseOrStop}
             variant="outline"
-            className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 rounded-full font-medium text-base shadow-md hover:shadow-lg transition-all duration-200"
+            className="border-2 border-border text-foreground hover:bg-accent px-10 py-4 rounded-full font-medium text-lg shadow-md hover:shadow-lg transition-all duration-200"
           >
-            <Pause className="h-5 w-5 mr-2" />
+            <Pause className="h-6 w-6 mr-3" />
             Pause
           </Button>
         </div>
@@ -259,20 +259,20 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
         <Button
           onClick={onSwitchToExcelView}
           variant="ghost"
-          className="w-full text-gray-600 hover:text-gray-800 hover:bg-gray-50 py-3 rounded-lg font-medium transition-colors"
+          className="w-full text-muted-foreground hover:text-foreground hover:bg-accent/50 py-4 rounded-xl font-medium transition-colors"
         >
-          <Eye className="h-4 w-4 mr-2" />
+          <Eye className="h-5 w-5 mr-3" />
           View Time Data
         </Button>
       </div>
 
       {/* Status Message */}
       {!selectedProject || !selectedSubproject ? (
-        <div className="text-center text-gray-500 text-sm bg-gray-50 p-4 rounded-lg mx-6 mb-6">
+        <div className="text-center text-muted-foreground text-sm bg-muted/50 p-5 rounded-xl mx-6 mb-6 border border-border/40">
           Please select a project and subproject to start tracking time
         </div>
       ) : (
-        <div className="text-center text-gray-600 text-sm bg-gray-50 p-3 rounded-lg mx-6 mb-6 flex items-center justify-center">
+        <div className="text-center text-muted-foreground text-sm bg-muted/30 p-4 rounded-xl mx-6 mb-6 flex items-center justify-center border border-border/40">
           <Clock className="h-4 w-4 mr-2" />
           Ready to track time for {selectedProject.name} → {selectedSubproject.name}
         </div>
@@ -280,33 +280,34 @@ const StopwatchPanel: React.FC<StopwatchPanelProps> = ({
 
       {/* Description Dialog - Only shown after stopping */}
       <Dialog open={showDescriptionDialog} onOpenChange={() => {}}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Log Time Entry</DialogTitle>
+            <DialogTitle className="text-xl font-medium">Log Time Entry</DialogTitle>
           </DialogHeader>
           {pendingLogData && (
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded">
-                <div className="font-medium">{selectedProject?.name}</div>
+            <div className="space-y-6">
+              <div className="p-5 bg-muted/50 rounded-xl border border-border/40">
+                <div className="font-medium text-foreground">{selectedProject?.name}</div>
                 <div className="text-sm text-muted-foreground">{selectedSubproject?.name}</div>
-                <div className="text-sm font-mono mt-1">Duration: {formatTime(pendingLogData.duration)}</div>
+                <div className="text-sm font-mono mt-2 text-foreground">Duration: {formatTime(pendingLogData.duration)}</div>
               </div>
               
               <div>
-                <Label>Description (optional)</Label>
+                <Label className="text-sm font-medium text-foreground">Description (optional)</Label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What did you work on?"
                   rows={3}
+                  className="mt-2 border-border/60 bg-input/50 focus:bg-background"
                 />
               </div>
               
-              <div className="flex gap-2">
-                <Button onClick={handleConfirmLog} className="flex-1">
+              <div className="flex gap-3">
+                <Button onClick={handleConfirmLog} className="flex-1 py-3">
                   Save Entry
                 </Button>
-                <Button variant="outline" onClick={handleCancelLog}>
+                <Button variant="outline" onClick={handleCancelLog} className="px-6 py-3">
                   Cancel
                 </Button>
               </div>
