@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Play, Square, Save } from 'lucide-react';
+import { generateProjectColor, isColorCodedProjectsEnabled } from '@/lib/projectColors';
 
 export interface QueuedProject {
   id: string;
@@ -32,6 +33,30 @@ const QueuedProjects: React.FC<QueuedProjectsProps> = ({
 }) => {
   const [stoppingProject, setStoppingProject] = useState<QueuedProject | null>(null);
   const [description, setDescription] = useState('');
+  const [colorCodedEnabled, setColorCodedEnabled] = useState(false);
+
+  useEffect(() => {
+    setColorCodedEnabled(isColorCodedProjectsEnabled());
+    
+    const handleStorageChange = () => {
+      setColorCodedEnabled(isColorCodedProjectsEnabled());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('settings-changed', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('settings-changed', handleStorageChange);
+    };
+  }, []);
+
+  const getProjectBackgroundStyle = (projectName: string) => {
+    if (!colorCodedEnabled) return {};
+    return {
+      backgroundColor: generateProjectColor(projectName)
+    };
+  };
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -84,7 +109,11 @@ const QueuedProjects: React.FC<QueuedProjectsProps> = ({
         <CardContent>
           <div className="space-y-4">
             {queuedProjects.map(project => (
-              <div key={project.id} className="flex items-center justify-between p-5 border border-border/40 rounded-xl bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200">
+              <div 
+                key={project.id} 
+                className="flex items-center justify-between p-5 border border-border/40 rounded-xl bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200"
+                style={getProjectBackgroundStyle(project.projectName)}
+              >
                 <div className="flex-1">
                   <div className="font-medium text-foreground">{project.projectName}</div>
                   <div className="text-sm text-muted-foreground mt-1">{project.subprojectName}</div>

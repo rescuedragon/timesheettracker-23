@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChevronLeft, ChevronRight, Calendar, BarChart3, ChevronDown, ChevronRight as ChevronRightIcon, Edit, Expand, Minimize2, Download, CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, BarChart3, ChevronDown, ChevronRight as ChevronRightIcon, Edit, Expand, Minimize2, Download, CalendarIcon, Filter, X, Check } from 'lucide-react';
 import { TimeLog } from './TimeTracker';
 import DailyTimesheet from './DailyTimesheet';
 import DateRangeSelector from './DateRangeSelector';
@@ -64,6 +64,12 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
   const [customStartDate, setCustomStartDate] = useState<Date>();
   const [customEndDate, setCustomEndDate] = useState<Date>();
   const [colorCodedEnabled, setColorCodedEnabled] = useState(false);
+  
+  // Filter states
+  const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortColumn, setSortColumn] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   React.useEffect(() => {
     setColorCodedEnabled(isColorCodedProjectsEnabled());
@@ -273,6 +279,9 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
       
       if (logDate < startDate || logDate > endDate) return;
       
+      // Apply project filter
+      if (selectedProjects.size > 0 && !selectedProjects.has(log.projectId)) return;
+      
       const dayKey = selectedRange === 'current-week' 
         ? logDate.toLocaleDateString('en-US', { weekday: 'short' })
         : logDate.toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' });
@@ -315,7 +324,35 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
       subproject.dailyTimes[dayKey].logs.push(log);
     });
     
-    return Array.from(projectMap.values());
+    let projectsArray = Array.from(projectMap.values());
+    
+    // Apply sorting
+    if (sortColumn) {
+      projectsArray.sort((a, b) => {
+        let aValue: number | string;
+        let bValue: number | string;
+        
+        if (sortColumn === 'project') {
+          aValue = a.projectName.toLowerCase();
+          bValue = b.projectName.toLowerCase();
+        } else if (sortColumn === 'total') {
+          aValue = a.totalTime;
+          bValue = b.totalTime;
+        } else {
+          // Day column sorting
+          aValue = a.dailyTimes[sortColumn]?.time || 0;
+          bValue = b.dailyTimes[sortColumn]?.time || 0;
+        }
+        
+        if (sortDirection === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+    }
+    
+    return projectsArray;
   };
 
   const handleTimeClick = (logs: TimeLog[]) => {
@@ -361,23 +398,41 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
   };
 
   const nextWeek = () => {
-    const newWeekStart = new Date(currentWeekStart);
-    newWeekStart.setDate(newWeekStart.getDate() + 7);
-    const newWeekEnd = new Date(newWeekStart);
-    newWeekEnd.setDate(newWeekStart.getDate() + 6);
-    newWeekEnd.setHours(23, 59, 59, 999);
-    setCurrentWeekStart(newWeekStart);
-    setDateRange({ start: newWeekStart, end: newWeekEnd });
+    if (selectedRange === 'this-month' || selectedRange === 'previous-month') {
+      // For monthly views, move by months
+      const newStart = new Date(dateRange.start);
+      newStart.setMonth(newStart.getMonth() + 1);
+      const newEnd = new Date(newStart.getFullYear(), newStart.getMonth() + 1, 0);
+      handleDateRangeChange(newStart, newEnd);
+    } else {
+      // For weekly views, move by weeks
+      const newWeekStart = new Date(currentWeekStart);
+      newWeekStart.setDate(newWeekStart.getDate() + 7);
+      const newWeekEnd = new Date(newWeekStart);
+      newWeekEnd.setDate(newWeekStart.getDate() + 6);
+      newWeekEnd.setHours(23, 59, 59, 999);
+      setCurrentWeekStart(newWeekStart);
+      setDateRange({ start: newWeekStart, end: newWeekEnd });
+    }
   };
 
   const prevWeek = () => {
-    const newWeekStart = new Date(currentWeekStart);
-    newWeekStart.setDate(newWeekStart.getDate() - 7);
-    const newWeekEnd = new Date(newWeekStart);
-    newWeekEnd.setDate(newWeekStart.getDate() + 6);
-    newWeekEnd.setHours(23, 59, 59, 999);
-    setCurrentWeekStart(newWeekStart);
-    setDateRange({ start: newWeekStart, end: newWeekEnd });
+    if (selectedRange === 'this-month' || selectedRange === 'previous-month') {
+      // For monthly views, move by months
+      const newStart = new Date(dateRange.start);
+      newStart.setMonth(newStart.getMonth() - 1);
+      const newEnd = new Date(newStart.getFullYear(), newStart.getMonth() + 1, 0);
+      handleDateRangeChange(newStart, newEnd);
+    } else {
+      // For weekly views, move by weeks
+      const newWeekStart = new Date(currentWeekStart);
+      newWeekStart.setDate(newWeekStart.getDate() - 7);
+      const newWeekEnd = new Date(newWeekStart);
+      newWeekEnd.setDate(newWeekStart.getDate() + 6);
+      newWeekEnd.setHours(23, 59, 59, 999);
+      setCurrentWeekStart(newWeekStart);
+      setDateRange({ start: newWeekStart, end: newWeekEnd });
+    }
   };
 
   const toggleProjectExpansion = (projectId: string) => {
@@ -468,6 +523,45 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
   };
 
   const { weekStart, weekEnd, days, weekTotal } = getCurrentDateRangeData();
+
+  // Get all unique projects for filter
+  const getAllProjects = () => {
+    const projectsMap = new Map();
+    timeLogs.forEach(log => {
+      if (!projectsMap.has(log.projectId)) {
+        projectsMap.set(log.projectId, { id: log.projectId, name: log.projectName });
+      }
+    });
+    return Array.from(projectsMap.values());
+  };
+
+  const handleProjectFilterToggle = (projectId: string) => {
+    const newSelected = new Set(selectedProjects);
+    if (newSelected.has(projectId)) {
+      newSelected.delete(projectId);
+    } else {
+      newSelected.add(projectId);
+    }
+    setSelectedProjects(newSelected);
+  };
+
+  const clearProjectFilters = () => {
+    setSelectedProjects(new Set());
+  };
+
+  const selectAllProjects = () => {
+    const allProjectIds = getAllProjects().map(p => p.id);
+    setSelectedProjects(new Set(allProjectIds));
+  };
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -603,23 +697,100 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
                   {allExpanded ? <Minimize2 className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
                   {allExpanded ? 'Collapse All' : 'Expand All'}
                 </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2"
+                >
+                  <Filter className="h-4 w-4" />
+                  Filters
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportToCSV}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   {weekStart.toLocaleDateString()} - {weekEnd.toLocaleDateString()}
                 </div>
               </div>
             </DialogTitle>
           </DialogHeader>
+          
+          {/* Filter Panel */}
+          {showFilters && (
+            <div className="border-b p-4 bg-gray-50 dark:bg-gray-800">
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Filter by Projects:</Label>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Button size="sm" variant="outline" onClick={selectAllProjects}>
+                      Select All
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={clearProjectFilters}>
+                      Clear All
+                    </Button>
+                    <span className="text-sm text-gray-500">
+                      {selectedProjects.size > 0 ? `${selectedProjects.size} selected` : 'All projects'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto">
+                    {getAllProjects().map(project => (
+                      <label key={project.id} className="flex items-center space-x-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={selectedProjects.size === 0 || selectedProjects.has(project.id)}
+                          onChange={() => handleProjectFilterToggle(project.id)}
+                          className="rounded"
+                        />
+                        <span className="truncate">{project.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="overflow-auto">
             <table className="w-full border-collapse border border-gray-200 text-sm">
               <thead>
                 <tr className="bg-gray-100 dark:bg-gray-800">
-                  <th className="border border-gray-200 px-4 py-3 text-left font-medium min-w-[250px]">Project</th>
+                  <th className="border border-gray-200 px-4 py-3 text-left font-medium min-w-[250px]">
+                    <button 
+                      onClick={() => handleSort('project')}
+                      className="flex items-center gap-1 hover:text-blue-600"
+                    >
+                      Project
+                      {sortColumn === 'project' && (
+                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </button>
+                  </th>
                   {days.map(day => (
                     <th key={day.dayName} className="border border-gray-200 px-4 py-3 text-center font-medium min-w-[80px]">
-                      {day.dayName}
+                      <button 
+                        onClick={() => handleSort(day.dayName)}
+                        className="flex items-center gap-1 hover:text-blue-600 mx-auto"
+                      >
+                        {day.dayName}
+                        {sortColumn === day.dayName && (
+                          <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </button>
                     </th>
                   ))}
-                  <th className="border border-gray-200 px-4 py-3 text-center font-medium min-w-[80px]">Total</th>
+                  <th className="border border-gray-200 px-4 py-3 text-center font-medium min-w-[80px]">
+                    <button 
+                      onClick={() => handleSort('total')}
+                      className="flex items-center gap-1 hover:text-blue-600 mx-auto"
+                    >
+                      Total
+                      {sortColumn === 'total' && (
+                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </button>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -673,7 +844,20 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-gray-400 text-sm">0.0</span>
+                              <div className="group relative">
+                                <button
+                                  onClick={() => handleCellEdit(project.projectId, null, day.dayName, 0)}
+                                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:underline font-mono text-sm w-full"
+                                >
+                                  0.0
+                                </button>
+                                <button
+                                  onClick={() => handleCellEdit(project.projectId, null, day.dayName, 0)}
+                                  className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 p-1"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </button>
+                              </div>
                             )}
                           </td>
                         );
@@ -722,9 +906,22 @@ const WeeklyTimesheet: React.FC<WeeklyTimesheetProps> = ({ timeLogs, onUpdateTim
                                      <Edit className="h-3 w-3" />
                                    </button>
                                  </div>
-                               ) : (
-                                 <span className="text-gray-400 text-sm">0.0</span>
-                               )}
+                                ) : (
+                                  <div className="group relative">
+                                    <button
+                                      onClick={() => handleCellEdit(project.projectId, subproject.subprojectId, day.dayName, 0)}
+                                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:underline font-mono text-sm w-full"
+                                    >
+                                      0.0
+                                    </button>
+                                    <button
+                                      onClick={() => handleCellEdit(project.projectId, subproject.subprojectId, day.dayName, 0)}
+                                      className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 p-1"
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                )}
                              </td>
                            );
                          })}

@@ -5,13 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Settings as SettingsIcon, Plus, Trash2 } from 'lucide-react';
+import { Settings as SettingsIcon, Plus, Trash2, Edit, Save, X } from 'lucide-react';
 
 const Settings: React.FC = () => {
   const [newProjectName, setNewProjectName] = useState('');
   const [newSubprojectName, setNewSubprojectName] = useState('');
   const [selectedProjectForSub, setSelectedProjectForSub] = useState('');
   const [newHoliday, setNewHoliday] = useState({ name: '', date: '' });
+  const [editingProject, setEditingProject] = useState<string | null>(null);
+  const [editingSubproject, setEditingSubproject] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
 
   // Progress bar settings
   const [progressBarEnabled, setProgressBarEnabled] = useState(() => {
@@ -87,6 +90,92 @@ const Settings: React.FC = () => {
     const updatedProjects = projects.filter(p => p.id !== projectId);
     setProjects(updatedProjects);
     localStorage.setItem('timesheet-projects', JSON.stringify(updatedProjects));
+    
+    // Also remove associated time logs
+    const savedTimeLogs = localStorage.getItem('timesheet-logs');
+    if (savedTimeLogs) {
+      const timeLogs = JSON.parse(savedTimeLogs);
+      const filteredLogs = timeLogs.filter((log: any) => log.projectId !== projectId);
+      localStorage.setItem('timesheet-logs', JSON.stringify(filteredLogs));
+    }
+  };
+
+  const handleEditProject = (projectId: string, newName: string) => {
+    const updatedProjects = projects.map(project => 
+      project.id === projectId 
+        ? { ...project, name: newName }
+        : project
+    );
+    setProjects(updatedProjects);
+    localStorage.setItem('timesheet-projects', JSON.stringify(updatedProjects));
+    
+    // Update project names in time logs
+    const savedTimeLogs = localStorage.getItem('timesheet-logs');
+    if (savedTimeLogs) {
+      const timeLogs = JSON.parse(savedTimeLogs);
+      const updatedLogs = timeLogs.map((log: any) => 
+        log.projectId === projectId 
+          ? { ...log, projectName: newName }
+          : log
+      );
+      localStorage.setItem('timesheet-logs', JSON.stringify(updatedLogs));
+    }
+    
+    setEditingProject(null);
+    setEditingName('');
+  };
+
+  const handleDeleteSubproject = (projectId: string, subprojectId: string) => {
+    const updatedProjects = projects.map(project => 
+      project.id === projectId 
+        ? {
+            ...project,
+            subprojects: project.subprojects.filter((sub: any) => sub.id !== subprojectId)
+          }
+        : project
+    );
+    setProjects(updatedProjects);
+    localStorage.setItem('timesheet-projects', JSON.stringify(updatedProjects));
+    
+    // Also remove associated time logs
+    const savedTimeLogs = localStorage.getItem('timesheet-logs');
+    if (savedTimeLogs) {
+      const timeLogs = JSON.parse(savedTimeLogs);
+      const filteredLogs = timeLogs.filter((log: any) => log.subprojectId !== subprojectId);
+      localStorage.setItem('timesheet-logs', JSON.stringify(filteredLogs));
+    }
+  };
+
+  const handleEditSubproject = (projectId: string, subprojectId: string, newName: string) => {
+    const updatedProjects = projects.map(project => 
+      project.id === projectId 
+        ? {
+            ...project,
+            subprojects: project.subprojects.map((sub: any) => 
+              sub.id === subprojectId 
+                ? { ...sub, name: newName }
+                : sub
+            )
+          }
+        : project
+    );
+    setProjects(updatedProjects);
+    localStorage.setItem('timesheet-projects', JSON.stringify(updatedProjects));
+    
+    // Update subproject names in time logs
+    const savedTimeLogs = localStorage.getItem('timesheet-logs');
+    if (savedTimeLogs) {
+      const timeLogs = JSON.parse(savedTimeLogs);
+      const updatedLogs = timeLogs.map((log: any) => 
+        log.subprojectId === subprojectId 
+          ? { ...log, subprojectName: newName }
+          : log
+      );
+      localStorage.setItem('timesheet-logs', JSON.stringify(updatedLogs));
+    }
+    
+    setEditingSubproject(null);
+    setEditingName('');
   };
 
   const handleAddHoliday = () => {
@@ -194,23 +283,109 @@ const Settings: React.FC = () => {
                   {projects.map(project => (
                     <div key={project.id} className="border rounded p-3">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{project.name}</h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteProject(project.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {editingProject === project.id ? (
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              className="flex-1"
+                              autoFocus
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => handleEditProject(project.id, editingName)}
+                              disabled={!editingName.trim()}
+                            >
+                              <Save className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {setEditingProject(null); setEditingName('')}}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <h4 className="font-medium">{project.name}</h4>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {setEditingProject(project.id); setEditingName(project.name)}}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteProject(project.id)}
+                                className="text-red-600 hover:text-red-800"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </>
+                        )}
                       </div>
                       {project.subprojects.length > 0 && (
-                        <div className="mt-2 pl-4">
-                          <Label className="text-xs text-muted-foreground">Subprojects:</Label>
-                          <ul className="text-sm space-y-1">
-                            {project.subprojects.map(sub => (
-                              <li key={sub.id} className="text-muted-foreground">• {sub.name}</li>
+                        <div className="mt-3 pl-4 border-l-2 border-gray-200">
+                          <Label className="text-xs text-muted-foreground mb-2 block">Subprojects:</Label>
+                          <div className="space-y-2">
+                            {project.subprojects.map((sub: any) => (
+                              <div key={sub.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded">
+                                {editingSubproject === sub.id ? (
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <Input
+                                      value={editingName}
+                                      onChange={(e) => setEditingName(e.target.value)}
+                                      className="flex-1 h-8"
+                                      autoFocus
+                                    />
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleEditSubproject(project.id, sub.id, editingName)}
+                                      disabled={!editingName.trim()}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Save className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {setEditingSubproject(null); setEditingName('')}}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="text-sm">• {sub.name}</span>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {setEditingSubproject(sub.id); setEditingName(sub.name)}}
+                                        className="h-6 w-6 p-0"
+                                      >
+                                        <Edit className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDeleteSubproject(project.id, sub.id)}
+                                        className="h-6 w-6 p-0 text-red-600 hover:text-red-800"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       )}
                     </div>
