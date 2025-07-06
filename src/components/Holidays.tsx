@@ -37,22 +37,51 @@ const Holidays: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isAddingLeave, setIsAddingLeave] = useState(false);
   const [newLeave, setNewLeave] = useState({ name: '', employee: '', startDate: '', endDate: '' });
+  const [animationPhase, setAnimationPhase] = useState(0);
+  const [intensity, setIntensity] = useState(0.3);
 
   useEffect(() => {
     const savedHolidays = localStorage.getItem('timesheet-holidays');
     const savedLeaves = localStorage.getItem('planned-leaves');
-    if (savedHolidays) {
-      setHolidays(JSON.parse(savedHolidays));
-    }
-    if (savedLeaves) {
-      setPlannedLeaves(JSON.parse(savedLeaves));
-    }
+    if (savedHolidays) setHolidays(JSON.parse(savedHolidays));
+    if (savedLeaves) setPlannedLeaves(JSON.parse(savedLeaves));
+    
+    const interval = setInterval(() => {
+      setAnimationPhase(prev => (prev + 1) % 100);
+      if (Math.random() > 0.7) {
+        setIntensity(0.2 + Math.random() * 0.3);
+      }
+    }, 100);
+    
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     localStorage.setItem('timesheet-holidays', JSON.stringify(holidays));
     localStorage.setItem('planned-leaves', JSON.stringify(plannedLeaves));
   }, [holidays, plannedLeaves]);
+
+  const generateWindPattern = (phase: number, intensity: number) => {
+    const patterns = [];
+    const patternCount = 15 + Math.floor(10 * intensity);
+    
+    for (let i = 0; i < patternCount; i++) {
+      const offset = (phase + i * 10) % 100;
+      const size = 5 + Math.random() * 20;
+      const opacity = 0.1 + Math.random() * 0.3 * intensity;
+      const direction = i % 2 === 0 ? 'to bottom right' : 'to top right';
+      
+      patterns.push(
+        `linear-gradient(${direction}, 
+          transparent ${offset}%, 
+          rgba(255,255,255,${opacity}) ${offset}%, 
+          rgba(255,255,255,${opacity}) ${offset + size}%, 
+          transparent ${offset + size}%)`
+      );
+    }
+    
+    return patterns.join(',');
+  };
 
   const getHolidayDates = () => {
     return holidays.map(holiday => new Date(holiday.date));
@@ -78,7 +107,6 @@ const Holidays: React.FC = () => {
       };
       const updatedLeaves = [...plannedLeaves, leave];
       setPlannedLeaves(updatedLeaves);
-      localStorage.setItem('planned-leaves', JSON.stringify(updatedLeaves));
       setNewLeave({ name: '', employee: '', startDate: '', endDate: '' });
       setIsAddingLeave(false);
     }
@@ -87,7 +115,6 @@ const Holidays: React.FC = () => {
   const handleRemovePlannedLeave = (leaveId: string) => {
     const updatedLeaves = plannedLeaves.filter(leave => leave.id !== leaveId);
     setPlannedLeaves(updatedLeaves);
-    localStorage.setItem('planned-leaves', JSON.stringify(updatedLeaves));
   };
 
   const nextMonth = () => {
@@ -111,8 +138,21 @@ const Holidays: React.FC = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 to-gray-50">
-      <Card className="border-0 shadow-lg overflow-hidden">
-        {/* Animated header with wind pattern */}
+      <Card className="border-0 shadow-lg overflow-hidden relative">
+        {/* Dynamic animated border */}
+        <div 
+          className="absolute inset-0 z-10 pointer-events-none"
+          style={{
+            mask: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
+            maskComposite: 'exclude',
+            WebkitMask: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
+            WebkitMaskComposite: 'xor',
+            padding: '3px',
+            background: generateWindPattern(animationPhase, intensity),
+            animation: 'pulseBorder 3s infinite alternate',
+          }}
+        />
+        
         <CardHeader 
           className="text-white p-6 relative overflow-hidden"
           style={{
@@ -121,15 +161,12 @@ const Holidays: React.FC = () => {
             animation: 'gradientFlow 15s ease infinite',
           }}
         >
-          {/* Wind pattern overlay */}
-          <div className="absolute inset-0 opacity-20"
+          <div 
+            className="absolute inset-0"
             style={{
-              backgroundImage: `
-                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.3) 1px, transparent 1px),
-                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.3) 1px, transparent 1px),
-                radial-gradient(circle at 30% 40%, rgba(255,255,255,0.3) 1px, transparent 1px)
-              `,
-              backgroundSize: '100px 100px',
+              background: generateWindPattern(animationPhase, intensity),
+              opacity: intensity,
+              transition: 'opacity 1s ease',
             }}
           />
           
@@ -177,7 +214,6 @@ const Holidays: React.FC = () => {
 
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Calendar Section - Increased spacing */}
             <div className="flex-1">
               <Calendar
                 mode="single"
@@ -200,19 +236,18 @@ const Holidays: React.FC = () => {
                 }}
                 classNames={{
                   head_cell: "text-gray-500 font-normal text-sm pb-3",
-                  cell: "h-14", // Increased cell height
+                  cell: "h-14",
                   day: cn(
                     "h-12 w-12 text-base hover:bg-blue-50 rounded-lg transition-colors",
-                    "mx-auto" // Center align days
+                    "mx-auto"
                   ),
                   day_selected: "bg-blue-600 text-white hover:bg-blue-700",
-                  day_today: "bg-white border-2 border-blue-500", // More visible today indicator
+                  day_today: "bg-white border-2 border-blue-500",
                 }}
                 showOutsideDays={true}
               />
             </div>
             
-            {/* Sidebar Section - Better spacing */}
             <div className="w-full lg:w-96 space-y-6">
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -307,7 +342,6 @@ const Holidays: React.FC = () => {
                 </div>
               </div>
 
-              {/* Current month holidays - Better spacing */}
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                 <h4 className="text-lg font-semibold text-gray-800 mb-4">This Month's Holidays</h4>
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
@@ -373,18 +407,16 @@ const Holidays: React.FC = () => {
         </CardContent>
       </Card>
       
-      {/* Add global styles for animation */}
-      <style>{`
+      <style jsx global>{`
         @keyframes gradientFlow {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes pulseBorder {
+          0% { opacity: 0.3; }
+          100% { opacity: 0.8; }
         }
       `}</style>
     </div>
