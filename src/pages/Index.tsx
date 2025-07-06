@@ -57,8 +57,7 @@ const Index = () => {
       
       <div className="container mx-auto px-8 py-16">
         <div className="text-center mb-12 animate-fade-in">
-          <h1 className="text-6xl font-light text-foreground mb-6 tracking-tight">Team Timesheet</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-normal">Track your time across projects and subprojects with precision and style</p>
+          <h1 className="text-6xl font-light text-foreground mb-6 tracking-tight">Timesheet</h1>
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full animate-slide-up">

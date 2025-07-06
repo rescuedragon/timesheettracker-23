@@ -256,7 +256,6 @@ const TimeTracker = () => {
         {/* Left Panel - Project Selection */}
         <Card className="h-full shadow-lg border-0 bg-gradient-modern">
           <CardHeader className="pb-6">
-            <CardTitle className="text-center text-lg font-medium text-foreground">Select Project & Subproject</CardTitle>
           </CardHeader>
           <CardContent className="h-full pt-0">
             <ProjectSelector
