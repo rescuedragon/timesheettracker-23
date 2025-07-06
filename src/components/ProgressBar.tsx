@@ -195,7 +195,6 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
         
         <div className="flex justify-between items-end">
           <div className="text-sm text-gray-500">
-            Target: {targetHours}h • {remaining}h remaining
           </div>
           <div className="text-xl font-bold text-gray-700">
             {Math.round(progressPercentage)}%
