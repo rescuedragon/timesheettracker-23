@@ -6,20 +6,6 @@
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
-/* In your global CSS file (e.g., src/index.css) */
-:root {
-  --font-family: system-ui, sans-serif;
-}
-
-body {
-  font-family: var(--font-family);
-  transition: background-color 0.3s, color 0.3s;
-}
-
-/* Add smooth transitions for theme changes */
-* {
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
 
 @layer base {
   :root {
