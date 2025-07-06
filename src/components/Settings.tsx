@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Settings as SettingsIcon, Plus, Trash2, Edit, Save, X, Palette } from 'lucide-react';
 
 // Theme definitions inspired by major companies
+// Update the theme definitions with more beautiful palettes
 const themes = {
   default: {
     name: 'Default',
@@ -29,7 +30,8 @@ const themes = {
       border: '0 0% 91%',
       input: '0 0% 96%',
       ring: '0 0% 9%',
-    }
+    },
+    font: 'system-ui, sans-serif'
   },
   google: {
     name: 'Google',
@@ -39,7 +41,7 @@ const themes = {
       foreground: '210 40% 8%',
       card: '0 0% 100%',
       'card-foreground': '210 40% 8%',
-      primary: '221 83% 53%',
+      primary: '217 89% 61%',  // More vibrant blue
       'primary-foreground': '210 40% 98%',
       secondary: '210 40% 96%',
       'secondary-foreground': '210 40% 10%',
@@ -49,8 +51,9 @@ const themes = {
       'accent-foreground': '210 40% 10%',
       border: '214 32% 91%',
       input: '214 32% 91%',
-      ring: '221 83% 53%',
-    }
+      ring: '217 89% 61%',  // Matching primary
+    },
+    font: "'Google Sans', sans-serif"
   },
   apple: {
     name: 'Apple',
@@ -60,7 +63,7 @@ const themes = {
       foreground: '0 0% 0%',
       card: '0 0% 100%',
       'card-foreground': '0 0% 0%',
-      primary: '212 100% 50%',
+      primary: '212 100% 50%',  // Brighter blue
       'primary-foreground': '0 0% 100%',
       secondary: '210 40% 98%',
       'secondary-foreground': '210 40% 10%',
@@ -70,8 +73,9 @@ const themes = {
       'accent-foreground': '210 40% 10%',
       border: '214 32% 91%',
       input: '214 32% 91%',
-      ring: '212 100% 50%',
-    }
+      ring: '212 100% 50%',  // Matching primary
+    },
+    font: "'SF Pro Display', -apple-system, sans-serif"
   },
   cred: {
     name: 'CRED',
@@ -81,7 +85,7 @@ const themes = {
       foreground: '0 0% 98%',
       card: '0 0% 10%',
       'card-foreground': '0 0% 98%',
-      primary: '142 76% 36%',
+      primary: '142 76% 36%',  // Richer emerald
       'primary-foreground': '0 0% 98%',
       secondary: '0 0% 14%',
       'secondary-foreground': '0 0% 98%',
@@ -91,8 +95,9 @@ const themes = {
       'accent-foreground': '0 0% 98%',
       border: '240 3% 20%',
       input: '240 3% 20%',
-      ring: '142 76% 36%',
-    }
+      ring: '142 76% 36%',  // Matching primary
+    },
+    font: "'Poppins', sans-serif"
   },
   adobe: {
     name: 'Adobe',
@@ -102,7 +107,7 @@ const themes = {
       foreground: '0 0% 98%',
       card: '240 10% 3.9%',
       'card-foreground': '0 0% 98%',
-      primary: '0 72% 51%',
+      primary: '0 72% 51%',  // Vibrant Adobe red
       'primary-foreground': '0 85% 97%',
       secondary: '240 3.7% 15.9%',
       'secondary-foreground': '0 0% 98%',
@@ -112,8 +117,9 @@ const themes = {
       'accent-foreground': '0 0% 98%',
       border: '240 3.7% 15.9%',
       input: '240 3.7% 15.9%',
-      ring: '0 72% 51%',
-    }
+      ring: '0 72% 51%',  // Matching primary
+    },
+    font: "'Adobe Clean', sans-serif"
   },
   ocean: {
     name: 'Ocean',
@@ -123,7 +129,7 @@ const themes = {
       foreground: '210 40% 8%',
       card: '210 100% 98%',
       'card-foreground': '210 40% 8%',
-      primary: '200 98% 39%',
+      primary: '200 98% 39%',  // Deeper ocean blue
       'primary-foreground': '210 40% 98%',
       secondary: '210 40% 96%',
       'secondary-foreground': '210 40% 10%',
@@ -133,10 +139,74 @@ const themes = {
       'accent-foreground': '210 40% 10%',
       border: '214 32% 91%',
       input: '214 32% 91%',
-      ring: '200 98% 39%',
-    }
+      ring: '200 98% 39%',  // Matching primary
+    },
+    font: "'Nunito', sans-serif"
   }
 };
+
+// Update applyTheme function to handle fonts
+const applyTheme = (themeKey: string) => {
+  const theme = themes[themeKey];
+  if (!theme) return;
+
+  const root = document.documentElement;
+  Object.entries(theme.colors).forEach(([key, value]) => {
+    root.style.setProperty(`--${key}`, value);
+  });
+  
+  // Apply font family
+  root.style.setProperty('--font-family', theme.font);
+};
+
+// In the theme preview section, update the grid and preview cards:
+<div className="grid grid-cols-3 gap-3">
+  {Object.entries(themes).map(([key, theme]) => (
+    <button
+      key={key}
+      onClick={() => handleThemeChange(key)}
+      className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center ${
+        selectedTheme === key 
+          ? 'border-primary ring-2 ring-primary/30 shadow-lg' 
+          : 'border-border hover:border-primary/50'
+      }`}
+      style={{ 
+        background: `linear-gradient(135deg, hsl(${theme.colors.card}) 0%, hsl(${theme.colors.background}) 100%)`,
+        fontFamily: theme.font
+      }}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <div 
+          className="w-3 h-3 rounded-full"
+          style={{ 
+            backgroundColor: `hsl(${theme.colors.primary})`,
+            boxShadow: `0 0 0 2px hsl(${theme.colors.background}), 0 0 0 4px hsl(${theme.colors.primary})`
+          }}
+        />
+        <span className="text-sm font-medium">{theme.name}</span>
+      </div>
+      <div className="flex gap-1 w-full justify-center">
+        <div 
+          className="w-6 h-6 rounded-full border-2 border-white shadow"
+          style={{ backgroundColor: `hsl(${theme.colors.background})` }}
+        />
+        <div 
+          className="w-6 h-6 rounded-full border-2 border-white shadow"
+          style={{ backgroundColor: `hsl(${theme.colors.primary})` }}
+        />
+        <div 
+          className="w-6 h-6 rounded-full border-2 border-white shadow"
+          style={{ backgroundColor: `hsl(${theme.colors.secondary})` }}
+        />
+      </div>
+      <div className="mt-2 text-xs text-center opacity-80">
+        {theme.description}
+      </div>
+    </button>
+  ))}
+</div>
+
+
 
 const Settings: React.FC = () => {
   const [newProjectName, setNewProjectName] = useState('');

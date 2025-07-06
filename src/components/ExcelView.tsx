@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, FileSpreadsheet, Calendar, Edit, Save, X, Trash2, Plus } from 'lucide-react';
+import { Download, FileSpreadsheet, Calendar, Edit, Save, X, Trash2, Plus, Group } from 'lucide-react';
 import ProgressBar from './ProgressBar';
 import { TimeLog } from './TimeTracker';
 import WeeklyTimesheet from './WeeklyTimesheet';
@@ -16,7 +16,6 @@ import { generateProjectColor, isColorCodedProjectsEnabled } from '@/lib/project
 const ExcelView: React.FC = () => {
   const [timeLogs, setTimeLogs] = useState<TimeLog[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
-  const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [editingLog, setEditingLog] = useState<TimeLog | null>(null);
   const [editFormData, setEditFormData] = useState({
     duration: '',
@@ -35,6 +34,7 @@ const ExcelView: React.FC = () => {
     endTime: ''
   });
   const [colorCodedEnabled, setColorCodedEnabled] = useState(false);
+  const [groupByProject, setGroupByProject] = useState(false); // New state for grouping
 
   // Progress bar settings
   const [progressBarEnabled, setProgressBarEnabled] = useState(() => {
@@ -132,6 +132,25 @@ const ExcelView: React.FC = () => {
     });
     
     return Object.values(grouped).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  };
+
+  // Group logs by project within a day
+  const groupLogsByProject = (logs: TimeLog[]) => {
+    const grouped: { [key: string]: { projectName: string; logs: TimeLog[]; totalHours: number } } = {};
+    
+    logs.forEach(log => {
+      if (!grouped[log.projectName]) {
+        grouped[log.projectName] = {
+          projectName: log.projectName,
+          logs: [],
+          totalHours: 0
+        };
+      }
+      grouped[log.projectName].logs.push(log);
+      grouped[log.projectName].totalHours += log.duration;
+    });
+    
+    return Object.values(grouped);
   };
 
   const getRowBackgroundStyle = (projectName: string) => {
@@ -297,98 +316,194 @@ const ExcelView: React.FC = () => {
                   <FileSpreadsheet className="h-5 w-5" />
                   Time Entries
                 </div>
-                <Button onClick={exportToCSV} variant="outline" size="sm" className="hover:bg-blue-50 dark:hover:bg-blue-900">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setGroupByProject(!groupByProject)} 
+                    variant={groupByProject ? "default" : "outline"}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Group className="h-4 w-4" />
+                    Group by project
+                  </Button>
+                  <Button onClick={exportToCSV} variant="outline" size="sm" className="hover:bg-blue-50 dark:hover:bg-blue-900">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {groupedLogs.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    No time entries yet. Start tracking time to see data here.
+                    <div className="mb-4 text-lg">No time entries yet</div>
+                    <Button onClick={() => setIsAddEntryOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add your first entry
+                    </Button>
                   </div>
                 ) : (
                   groupedLogs.map(dayGroup => (
-                    <div key={dayGroup.date} className="border rounded-lg p-4 bg-white dark:bg-gray-800">
-                      <div className="flex items-center justify-between mb-4 pb-2 border-b">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div key={dayGroup.date} className="border rounded-xl p-5 bg-white dark:bg-gray-800 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3 border-b">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 sm:mb-0">
                           {dayGroup.displayDate}
                         </h3>
                         <div className="flex items-center gap-4">
-                          <Button 
-                            onClick={() => setIsAddEntryOpen(true)}
-                            size="sm"
-                            variant="outline"
-                            className="flex items-center gap-2"
-                          >
-                            <Plus className="h-4 w-4" />
-                            Add entry
-                          </Button>
                           <div className="text-right">
-                            <div className="text-sm text-gray-500">Daily Total</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">Daily Total</div>
                             <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
                               {formatHours(dayGroup.totalHours)} hrs
                             </div>
                           </div>
+                          <Button 
+                            onClick={() => setIsAddEntryOpen(true)}
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-800/50"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Add entry
+                          </Button>
                         </div>
                       </div>
                       
                       <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                        <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
                           <thead>
                             <tr className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900">
-                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Project</th>
-                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Subproject</th>
-                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Start</th>
-                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">End</th>
-                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Duration (hrs)</th>
-                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Description</th>
-                              <th className="border-2 border-gray-300 dark:border-gray-600 px-3 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Actions</th>
+                              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Project</th>
+                              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Subproject</th>
+                              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Start</th>
+                              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">End</th>
+                              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Duration (hrs)</th>
+                              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {dayGroup.logs
-                              .sort((a, b) => a.startTime.localeCompare(b.startTime))
-                              .map(log => (
-                                <tr 
-                                  key={log.id} 
-                                  className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                                  style={getRowBackgroundStyle(log.projectName)}
-                                >
-                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm font-medium text-gray-900 dark:text-gray-100">{log.projectName}</td>
-                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.subprojectName}</td>
-                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.startTime}</td>
-                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.endTime}</td>
-                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
-                                     <span className="font-mono font-bold text-green-700 dark:text-green-400">
-                                       {formatHours(log.duration)}
-                                     </span>
-                                   </td>
-                                   <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{log.description || '-'}</td>
-                                    <td className="border-2 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
-                                     <div className="flex gap-1">
-                                       <Button
-                                         onClick={() => handleEditLog(log)}
-                                         size="sm"
-                                         variant="ghost"
-                                         className="h-6 w-6 p-0"
-                                       >
-                                         <Edit className="h-3 w-3" />
-                                       </Button>
-                                       <Button
-                                         onClick={() => handleDeleteLog(log.id)}
-                                         size="sm"
-                                         variant="ghost"
-                                         className="h-6 w-6 p-0 text-red-600 hover:text-red-800"
-                                       >
-                                         <Trash2 className="h-3 w-3" />
-                                       </Button>
-                                     </div>
-                                   </td>
-                                </tr>
-                              ))}
+                            {groupByProject ? (
+                              groupLogsByProject(dayGroup.logs).map(projectGroup => (
+                                <React.Fragment key={projectGroup.projectName}>
+                                  <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                    <td 
+                                      colSpan={7} 
+                                      className="px-4 py-2 font-bold text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700"
+                                      style={getRowBackgroundStyle(projectGroup.projectName)}
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <span>{projectGroup.projectName}</span>
+                                        <span className="text-sm font-normal">
+                                          Total: {formatHours(projectGroup.totalHours)} hrs
+                                        </span>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                  {projectGroup.logs
+                                    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                                    .map(log => (
+                                      <tr 
+                                        key={log.id} 
+                                        className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border-b border-gray-200 dark:border-gray-700 last:border-0"
+                                        style={getRowBackgroundStyle(log.projectName)}
+                                      >
+                                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                                          {log.projectName}
+                                        </td>
+                                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                          {log.subprojectName}
+                                        </td>
+                                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                          {log.startTime}
+                                        </td>
+                                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                          {log.endTime}
+                                        </td>
+                                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm">
+                                          <span className="font-mono font-bold text-green-700 dark:text-green-400">
+                                            {formatHours(log.duration)}
+                                          </span>
+                                        </td>
+                                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 max-w-xs truncate">
+                                          {log.description || '-'}
+                                        </td>
+                                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-right">
+                                          <div className="flex justify-end gap-2">
+                                            <Button
+                                              onClick={() => handleEditLog(log)}
+                                              size="sm"
+                                              variant="ghost"
+                                              className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+                                            >
+                                              <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                              onClick={() => handleDeleteLog(log.id)}
+                                              size="sm"
+                                              variant="ghost"
+                                              className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-100 dark:hover:bg-red-900/50"
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                </React.Fragment>
+                              ))
+                            ) : (
+                              dayGroup.logs
+                                .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                                .map(log => (
+                                  <tr 
+                                    key={log.id} 
+                                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border-b border-gray-200 dark:border-gray-700 last:border-0"
+                                    style={getRowBackgroundStyle(log.projectName)}
+                                  >
+                                    <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                                      {log.projectName}
+                                    </td>
+                                    <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                      {log.subprojectName}
+                                    </td>
+                                    <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                      {log.startTime}
+                                    </td>
+                                    <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                      {log.endTime}
+                                    </td>
+                                    <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm">
+                                      <span className="font-mono font-bold text-green-700 dark:text-green-400">
+                                        {formatHours(log.duration)}
+                                      </span>
+                                    </td>
+                                    <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 max-w-xs truncate">
+                                      {log.description || '-'}
+                                    </td>
+                                    <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm text-right">
+                                      <div className="flex justify-end gap-2">
+                                        <Button
+                                          onClick={() => handleEditLog(log)}
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+                                        >
+                                          <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          onClick={() => handleDeleteLog(log.id)}
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-100 dark:hover:bg-red-900/50"
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))
+                            )}
                           </tbody>
                         </table>
                       </div>
@@ -403,12 +518,34 @@ const ExcelView: React.FC = () => {
 
       {/* Edit Log Dialog */}
       <Dialog open={!!editingLog} onOpenChange={() => setEditingLog(null)}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md rounded-xl">
           <DialogHeader>
-            <DialogTitle>Edit Time Entry</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5" />
+              Edit Time Entry
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>Start Time</Label>
+                <Input
+                  value={editFormData.startTime}
+                  onChange={(e) => setEditFormData({...editFormData, startTime: e.target.value})}
+                  placeholder="09:00:00"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>End Time</Label>
+                <Input
+                  value={editFormData.endTime}
+                  onChange={(e) => setEditFormData({...editFormData, endTime: e.target.value})}
+                  placeholder="11:30:00"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-1">
               <Label>Duration (hours)</Label>
               <Input
                 value={editFormData.duration}
@@ -418,23 +555,8 @@ const ExcelView: React.FC = () => {
                 step="0.1"
               />
             </div>
-            <div>
-              <Label>Start Time</Label>
-              <Input
-                value={editFormData.startTime}
-                onChange={(e) => setEditFormData({...editFormData, startTime: e.target.value})}
-                placeholder="e.g., 09:00:00"
-              />
-            </div>
-            <div>
-              <Label>End Time</Label>
-              <Input
-                value={editFormData.endTime}
-                onChange={(e) => setEditFormData({...editFormData, endTime: e.target.value})}
-                placeholder="e.g., 11:30:00"
-              />
-            </div>
-            <div>
+            
+            <div className="space-y-1">
               <Label>Description</Label>
               <Textarea
                 value={editFormData.description}
@@ -443,12 +565,21 @@ const ExcelView: React.FC = () => {
                 rows={3}
               />
             </div>
-            <div className="flex gap-2">
-              <Button onClick={handleSaveEdit} className="flex-1">
-                Save Changes
-              </Button>
-              <Button variant="outline" onClick={() => setEditingLog(null)}>
+            
+            <div className="flex gap-2 justify-end pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setEditingLog(null)}
+                className="px-4"
+              >
                 Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveEdit}
+                className="px-4 bg-blue-600 hover:bg-blue-700"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
               </Button>
             </div>
           </div>
@@ -457,85 +588,97 @@ const ExcelView: React.FC = () => {
 
       {/* Add Entry Dialog */}
       <Dialog open={isAddEntryOpen} onOpenChange={setIsAddEntryOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg rounded-xl">
           <DialogHeader>
-            <DialogTitle>Add Time Entry</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Add Time Entry
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Project</Label>
-              <Select 
-                value={addFormData.projectId} 
-                onValueChange={(value) => setAddFormData({...addFormData, projectId: value, subprojectId: ''})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select project" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map(project => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Subproject</Label>
-              <Select 
-                value={addFormData.subprojectId} 
-                onValueChange={(value) => setAddFormData({...addFormData, subprojectId: value})}
-                disabled={!addFormData.projectId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select subproject" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects
-                    .find(p => p.id === addFormData.projectId)
-                    ?.subprojects.map((sub: any) => (
-                      <SelectItem key={sub.id} value={sub.id}>
-                        {sub.name}
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>Project</Label>
+                <Select 
+                  value={addFormData.projectId} 
+                  onValueChange={(value) => setAddFormData({...addFormData, projectId: value, subprojectId: ''})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map(project => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
                       </SelectItem>
-                    )) || []}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Subproject</Label>
+                <Select 
+                  value={addFormData.subprojectId} 
+                  onValueChange={(value) => setAddFormData({...addFormData, subprojectId: value})}
+                  disabled={!addFormData.projectId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select subproject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects
+                      .find(p => p.id === addFormData.projectId)
+                      ?.subprojects.map((sub: any) => (
+                        <SelectItem key={sub.id} value={sub.id}>
+                          {sub.name}
+                        </SelectItem>
+                      )) || []}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <Label>Date</Label>
-              <Input
-                type="date"
-                value={addFormData.date}
-                onChange={(e) => setAddFormData({...addFormData, date: e.target.value})}
-              />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>Date</Label>
+                <Input
+                  type="date"
+                  value={addFormData.date}
+                  onChange={(e) => setAddFormData({...addFormData, date: e.target.value})}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Duration (hours)</Label>
+                <Input
+                  value={addFormData.duration}
+                  onChange={(e) => setAddFormData({...addFormData, duration: e.target.value})}
+                  placeholder="e.g., 2.5"
+                  type="number"
+                  step="0.1"
+                />
+              </div>
             </div>
-            <div>
-              <Label>Duration (hours)</Label>
-              <Input
-                value={addFormData.duration}
-                onChange={(e) => setAddFormData({...addFormData, duration: e.target.value})}
-                placeholder="e.g., 2.5"
-                type="number"
-                step="0.1"
-              />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>Start Time</Label>
+                <Input
+                  value={addFormData.startTime}
+                  onChange={(e) => setAddFormData({...addFormData, startTime: e.target.value})}
+                  placeholder="09:00:00"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>End Time</Label>
+                <Input
+                  value={addFormData.endTime}
+                  onChange={(e) => setAddFormData({...addFormData, endTime: e.target.value})}
+                  placeholder="11:30:00"
+                />
+              </div>
             </div>
-            <div>
-              <Label>Start Time</Label>
-              <Input
-                value={addFormData.startTime}
-                onChange={(e) => setAddFormData({...addFormData, startTime: e.target.value})}
-                placeholder="e.g., 09:00:00"
-              />
-            </div>
-            <div>
-              <Label>End Time</Label>
-              <Input
-                value={addFormData.endTime}
-                onChange={(e) => setAddFormData({...addFormData, endTime: e.target.value})}
-                placeholder="e.g., 11:30:00"
-              />
-            </div>
-            <div>
+            
+            <div className="space-y-1">
               <Label>Description (optional)</Label>
               <Textarea
                 value={addFormData.description}
@@ -544,12 +687,21 @@ const ExcelView: React.FC = () => {
                 rows={3}
               />
             </div>
-            <div className="flex gap-2">
-              <Button onClick={handleAddEntry} className="flex-1">
-                Add Entry
-              </Button>
-              <Button variant="outline" onClick={() => setIsAddEntryOpen(false)}>
+            
+            <div className="flex gap-2 justify-end pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsAddEntryOpen(false)}
+                className="px-4"
+              >
                 Cancel
+              </Button>
+              <Button 
+                onClick={handleAddEntry}
+                className="px-4 bg-blue-600 hover:bg-blue-700"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Add Entry
               </Button>
             </div>
           </div>
