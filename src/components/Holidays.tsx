@@ -50,11 +50,33 @@ const Holidays: React.FC = () => {
   useEffect(() => {
     const savedHolidays = localStorage.getItem('timesheet-holidays');
     const savedLeaves = localStorage.getItem('planned-leaves');
-    const savedColor = localStorage.getItem('progressbar-color');
     
     if (savedHolidays) setHolidays(JSON.parse(savedHolidays));
     if (savedLeaves) setPlannedLeaves(JSON.parse(savedLeaves));
-    if (savedColor) setProgressBarColor(savedColor);
+    
+    // Load the progress bar color from the same key used by Settings
+    const loadProgressBarColor = () => {
+      const savedColor = localStorage.getItem('progressbar-color');
+      if (savedColor) {
+        setProgressBarColor(savedColor);
+      }
+    };
+    
+    loadProgressBarColor();
+    
+    // Listen for storage changes and settings changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'progressbar-color' && e.newValue) {
+        setProgressBarColor(e.newValue);
+      }
+    };
+    
+    const handleSettingsChange = () => {
+      loadProgressBarColor();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('settings-changed', handleSettingsChange);
     
     const interval = setInterval(() => {
       setAnimationPhase(prev => (prev + 1) % 100);
@@ -63,7 +85,11 @@ const Holidays: React.FC = () => {
       }
     }, 100);
     
-    return () => clearInterval(interval);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('settings-changed', handleSettingsChange);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -149,11 +175,6 @@ const Holidays: React.FC = () => {
 
   const handleShowPlannedLeavesChange = (checked: boolean | "indeterminate") => {
     setShowPlannedLeaves(checked === true);
-  };
-
-  const handleColorChange = (color: string) => {
-    setProgressBarColor(color);
-    localStorage.setItem('progressbar-color', color);
   };
 
   const holidayDates = getHolidayDates();
@@ -431,33 +452,6 @@ const Holidays: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Settings Dialog */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button className="fixed bottom-4 right-4 p-2 rounded-full shadow-lg" size="icon">
-            <Settings className="h-5 w-5" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Progress Bar Settings</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <Label htmlFor="progressColor">Color:</Label>
-              <Input 
-                id="progressColor"
-                type="color" 
-                value={progressBarColor}
-                onChange={(e) => handleColorChange(e.target.value)}
-                className="w-20 h-10 cursor-pointer"
-              />
-              <span className="text-sm text-gray-600">{progressBarColor}</span>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
       
       <style jsx global>{`
         @keyframes gradientFlow {
