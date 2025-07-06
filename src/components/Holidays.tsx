@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Trash2, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Holiday {
@@ -39,12 +39,16 @@ const Holidays: React.FC = () => {
   const [newLeave, setNewLeave] = useState({ name: '', employee: '', startDate: '', endDate: '' });
   const [animationPhase, setAnimationPhase] = useState(0);
   const [intensity, setIntensity] = useState(0.3);
+  const [progressBarColor, setProgressBarColor] = useState('#00b3ff');
 
   useEffect(() => {
     const savedHolidays = localStorage.getItem('timesheet-holidays');
     const savedLeaves = localStorage.getItem('planned-leaves');
+    const savedColor = localStorage.getItem('progressBarColor');
+    
     if (savedHolidays) setHolidays(JSON.parse(savedHolidays));
     if (savedLeaves) setPlannedLeaves(JSON.parse(savedLeaves));
+    if (savedColor) setProgressBarColor(savedColor);
     
     const interval = setInterval(() => {
       setAnimationPhase(prev => (prev + 1) % 100);
@@ -99,6 +103,14 @@ const Holidays: React.FC = () => {
     return dates;
   };
 
+  const hasHolidaysThisMonth = () => {
+    return holidays.some(holiday => {
+      const holidayDate = new Date(holiday.date);
+      return holidayDate.getMonth() === currentMonth.getMonth() && 
+             holidayDate.getFullYear() === currentMonth.getFullYear();
+    });
+  };
+
   const handleAddPlannedLeave = () => {
     if (newLeave.name && newLeave.employee && newLeave.startDate && newLeave.endDate) {
       const leave: PlannedLeave = {
@@ -133,13 +145,17 @@ const Holidays: React.FC = () => {
     setShowPlannedLeaves(checked === true);
   };
 
+  const handleColorChange = (color: string) => {
+    setProgressBarColor(color);
+    localStorage.setItem('progressBarColor', color);
+  };
+
   const holidayDates = getHolidayDates();
   const leaveDates = getPlannedLeaveDates();
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 to-gray-50">
       <Card className="border-0 shadow-lg overflow-hidden relative">
-        {/* Dynamic animated border */}
         <div 
           className="absolute inset-0 z-10 pointer-events-none"
           style={{
@@ -150,6 +166,7 @@ const Holidays: React.FC = () => {
             padding: '3px',
             background: generateWindPattern(animationPhase, intensity),
             animation: 'pulseBorder 3s infinite alternate',
+            borderColor: progressBarColor,
           }}
         />
         
@@ -241,7 +258,7 @@ const Holidays: React.FC = () => {
                     "h-12 w-12 text-base hover:bg-blue-50 rounded-lg transition-colors",
                     "mx-auto"
                   ),
-                  day_selected: "bg-blue-600 text-white hover:bg-blue-700",
+                  day_selected: `bg-[${progressBarColor}] text-white hover:bg-[${progressBarColor}]/90`,
                   day_today: "bg-white border-2 border-blue-500",
                 }}
                 showOutsideDays={true}
@@ -342,28 +359,30 @@ const Holidays: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <h4 className="text-lg font-semibold text-gray-800 mb-4">This Month's Holidays</h4>
-                <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                  {holidays
-                    .filter(holiday => {
-                      const holidayDate = new Date(holiday.date);
-                      return holidayDate.getMonth() === currentMonth.getMonth() && 
-                             holidayDate.getFullYear() === currentMonth.getFullYear();
-                    })
-                    .map(holiday => (
-                      <div 
-                        key={holiday.id} 
-                        className="p-3 rounded-lg bg-gradient-to-r from-red-50 to-red-100 border border-red-100"
-                      >
-                        <div className="font-medium text-gray-800">{holiday.name}</div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          {new Date(holiday.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              {hasHolidaysThisMonth() && (
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">This Month's Holidays</h4>
+                  <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                    {holidays
+                      .filter(holiday => {
+                        const holidayDate = new Date(holiday.date);
+                        return holidayDate.getMonth() === currentMonth.getMonth() && 
+                               holidayDate.getFullYear() === currentMonth.getFullYear();
+                      })
+                      .map(holiday => (
+                        <div 
+                          key={holiday.id} 
+                          className="p-3 rounded-lg bg-gradient-to-r from-red-50 to-red-100 border border-red-100"
+                        >
+                          <div className="font-medium text-gray-800">{holiday.name}</div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {new Date(holiday.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {showPlannedLeaves && (
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -406,6 +425,33 @@ const Holidays: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Settings Dialog */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button className="fixed bottom-4 right-4 p-2 rounded-full shadow-lg" size="icon">
+            <Settings className="h-5 w-5" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Progress Bar Settings</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Label htmlFor="progressColor">Color:</Label>
+              <Input 
+                id="progressColor"
+                type="color" 
+                value={progressBarColor}
+                onChange={(e) => handleColorChange(e.target.value)}
+                className="w-20 h-10 cursor-pointer"
+              />
+              <span className="text-sm text-gray-600">{progressBarColor}</span>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       <style jsx global>{`
         @keyframes gradientFlow {
