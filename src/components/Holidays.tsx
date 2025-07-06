@@ -23,6 +23,12 @@ interface PlannedLeave {
   endDate: string;
 }
 
+function adjustColor(color: string, amount: number) {
+  return '#' + color.replace(/^#/, '').replace(/../g, color => 
+    ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2)
+  );
+}
+
 const Holidays: React.FC = () => {
   const [holidays, setHolidays] = useState<Holiday[]>([
     { id: '1', name: 'New Year', date: '2025-01-01' },
@@ -44,7 +50,7 @@ const Holidays: React.FC = () => {
   useEffect(() => {
     const savedHolidays = localStorage.getItem('timesheet-holidays');
     const savedLeaves = localStorage.getItem('planned-leaves');
-    const savedColor = localStorage.getItem('progressBarColor');
+    const savedColor = localStorage.getItem('progressbar-color');
     
     if (savedHolidays) setHolidays(JSON.parse(savedHolidays));
     if (savedLeaves) setPlannedLeaves(JSON.parse(savedLeaves));
@@ -147,7 +153,7 @@ const Holidays: React.FC = () => {
 
   const handleColorChange = (color: string) => {
     setProgressBarColor(color);
-    localStorage.setItem('progressBarColor', color);
+    localStorage.setItem('progressbar-color', color);
   };
 
   const holidayDates = getHolidayDates();
@@ -173,7 +179,7 @@ const Holidays: React.FC = () => {
         <CardHeader 
           className="text-white p-6 relative overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #0ea5e9, #0284c7, #0369a1, #0c4a6e)',
+            background: `linear-gradient(135deg, ${progressBarColor}, ${adjustColor(progressBarColor, -20)}, ${adjustColor(progressBarColor, -40)}, ${adjustColor(progressBarColor, -60)})`,
             backgroundSize: '400% 400%',
             animation: 'gradientFlow 15s ease infinite',
           }}
