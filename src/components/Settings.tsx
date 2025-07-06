@@ -5,7 +5,138 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Settings as SettingsIcon, Plus, Trash2, Edit, Save, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Settings as SettingsIcon, Plus, Trash2, Edit, Save, X, Palette } from 'lucide-react';
+
+// Theme definitions inspired by major companies
+const themes = {
+  default: {
+    name: 'Default',
+    description: 'Clean and minimal design',
+    colors: {
+      background: '0 0% 100%',
+      foreground: '0 0% 15%',
+      card: '0 0% 100%',
+      'card-foreground': '0 0% 15%',
+      primary: '0 0% 9%',
+      'primary-foreground': '0 0% 98%',
+      secondary: '0 0% 98%',
+      'secondary-foreground': '0 0% 15%',
+      muted: '0 0% 98%',
+      'muted-foreground': '0 0% 45%',
+      accent: '0 0% 96%',
+      'accent-foreground': '0 0% 15%',
+      border: '0 0% 91%',
+      input: '0 0% 96%',
+      ring: '0 0% 9%',
+    }
+  },
+  google: {
+    name: 'Google',
+    description: 'Material Design inspired',
+    colors: {
+      background: '0 0% 100%',
+      foreground: '210 40% 8%',
+      card: '0 0% 100%',
+      'card-foreground': '210 40% 8%',
+      primary: '221 83% 53%',
+      'primary-foreground': '210 40% 98%',
+      secondary: '210 40% 96%',
+      'secondary-foreground': '210 40% 10%',
+      muted: '210 40% 96%',
+      'muted-foreground': '215 16% 47%',
+      accent: '210 40% 94%',
+      'accent-foreground': '210 40% 10%',
+      border: '214 32% 91%',
+      input: '214 32% 91%',
+      ring: '221 83% 53%',
+    }
+  },
+  apple: {
+    name: 'Apple',
+    description: 'Cupertino design system',
+    colors: {
+      background: '0 0% 100%',
+      foreground: '0 0% 0%',
+      card: '0 0% 100%',
+      'card-foreground': '0 0% 0%',
+      primary: '212 100% 50%',
+      'primary-foreground': '0 0% 100%',
+      secondary: '210 40% 98%',
+      'secondary-foreground': '210 40% 10%',
+      muted: '210 40% 98%',
+      'muted-foreground': '215 16% 47%',
+      accent: '210 40% 96%',
+      'accent-foreground': '210 40% 10%',
+      border: '214 32% 91%',
+      input: '214 32% 91%',
+      ring: '212 100% 50%',
+    }
+  },
+  cred: {
+    name: 'CRED',
+    description: 'Dark premium aesthetic',
+    colors: {
+      background: '0 0% 7%',
+      foreground: '0 0% 98%',
+      card: '0 0% 10%',
+      'card-foreground': '0 0% 98%',
+      primary: '142 76% 36%',
+      'primary-foreground': '0 0% 98%',
+      secondary: '0 0% 14%',
+      'secondary-foreground': '0 0% 98%',
+      muted: '0 0% 14%',
+      'muted-foreground': '240 5% 64%',
+      accent: '0 0% 14%',
+      'accent-foreground': '0 0% 98%',
+      border: '240 3% 20%',
+      input: '240 3% 20%',
+      ring: '142 76% 36%',
+    }
+  },
+  adobe: {
+    name: 'Adobe',
+    description: 'Creative professional theme',
+    colors: {
+      background: '240 10% 3.9%',
+      foreground: '0 0% 98%',
+      card: '240 10% 3.9%',
+      'card-foreground': '0 0% 98%',
+      primary: '0 72% 51%',
+      'primary-foreground': '0 85% 97%',
+      secondary: '240 3.7% 15.9%',
+      'secondary-foreground': '0 0% 98%',
+      muted: '240 3.7% 15.9%',
+      'muted-foreground': '240 5% 64.9%',
+      accent: '240 3.7% 15.9%',
+      'accent-foreground': '0 0% 98%',
+      border: '240 3.7% 15.9%',
+      input: '240 3.7% 15.9%',
+      ring: '0 72% 51%',
+    }
+  },
+  ocean: {
+    name: 'Ocean',
+    description: 'Calm blue tones',
+    colors: {
+      background: '210 100% 98%',
+      foreground: '210 40% 8%',
+      card: '210 100% 98%',
+      'card-foreground': '210 40% 8%',
+      primary: '200 98% 39%',
+      'primary-foreground': '210 40% 98%',
+      secondary: '210 40% 96%',
+      'secondary-foreground': '210 40% 10%',
+      muted: '210 40% 96%',
+      'muted-foreground': '215 16% 47%',
+      accent: '210 40% 94%',
+      'accent-foreground': '210 40% 10%',
+      border: '214 32% 91%',
+      input: '214 32% 91%',
+      ring: '200 98% 39%',
+    }
+  }
+};
 
 const Settings: React.FC = () => {
   const [newProjectName, setNewProjectName] = useState('');
@@ -37,6 +168,17 @@ const Settings: React.FC = () => {
   const [frequentSubprojectsEnabled, setFrequentSubprojectsEnabled] = useState(() => {
     const saved = localStorage.getItem('frequent-subprojects-enabled');
     return saved ? JSON.parse(saved) : false;
+  });
+
+  // Theme settings
+  const [themesEnabled, setThemesEnabled] = useState(() => {
+    const saved = localStorage.getItem('themes-enabled');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  const [selectedTheme, setSelectedTheme] = useState(() => {
+    const saved = localStorage.getItem('selected-theme');
+    return saved || 'default';
   });
 
   // Get projects from localStorage
@@ -196,11 +338,13 @@ const Settings: React.FC = () => {
   const handleProgressBarToggle = (enabled: boolean) => {
     setProgressBarEnabled(enabled);
     localStorage.setItem('progressbar-enabled', JSON.stringify(enabled));
+    window.dispatchEvent(new CustomEvent('settings-changed'));
   };
 
   const handleProgressBarColorChange = (color: string) => {
     setProgressBarColor(color);
     localStorage.setItem('progressbar-color', color);
+    window.dispatchEvent(new CustomEvent('settings-changed'));
   };
 
   const handleColorCodedProjectsToggle = (enabled: boolean) => {
@@ -212,6 +356,36 @@ const Settings: React.FC = () => {
   const handleFrequentSubprojectsToggle = (enabled: boolean) => {
     setFrequentSubprojectsEnabled(enabled);
     localStorage.setItem('frequent-subprojects-enabled', JSON.stringify(enabled));
+    window.dispatchEvent(new CustomEvent('settings-changed'));
+  };
+
+  const handleThemesToggle = (enabled: boolean) => {
+    setThemesEnabled(enabled);
+    localStorage.setItem('themes-enabled', JSON.stringify(enabled));
+    if (!enabled) {
+      // Reset to default theme when disabled
+      setSelectedTheme('default');
+      applyTheme('default');
+    }
+    window.dispatchEvent(new CustomEvent('settings-changed'));
+  };
+
+  const applyTheme = (themeKey: string) => {
+    const theme = themes[themeKey];
+    if (!theme) return;
+
+    const root = document.documentElement;
+    Object.entries(theme.colors).forEach(([key, value]) => {
+      root.style.setProperty(`--${key}`, value);
+    });
+  };
+
+  const handleThemeChange = (themeKey: string) => {
+    setSelectedTheme(themeKey);
+    localStorage.setItem('selected-theme', themeKey);
+    if (themesEnabled) {
+      applyTheme(themeKey);
+    }
     window.dispatchEvent(new CustomEvent('settings-changed'));
   };
 
@@ -522,6 +696,95 @@ const Settings: React.FC = () => {
                     <div className="ml-4 p-4 bg-muted rounded-lg space-y-3">
                       <div className="text-sm text-muted-foreground">
                         Preview: Each project and its subprojects will be highlighted with the same soft color across all views for easy identification.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <Label className="text-base flex items-center gap-2">
+                        <Palette className="h-4 w-4" />
+                        Professional Themes
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Choose from professionally designed themes inspired by major companies
+                      </p>
+                    </div>
+                    <Switch
+                      checked={themesEnabled}
+                      onCheckedChange={handleThemesToggle}
+                    />
+                  </div>
+                  
+                  {themesEnabled && (
+                    <div className="ml-4 p-4 bg-muted rounded-lg space-y-4">
+                      <div className="space-y-2">
+                        <Label>Select Theme</Label>
+                        <Select value={selectedTheme} onValueChange={handleThemeChange}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Choose a theme" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(themes).map(([key, theme]) => (
+                              <SelectItem key={key} value={key}>
+                                <div className="flex items-center gap-3">
+                                  <div 
+                                    className="w-4 h-4 rounded-full border"
+                                    style={{ backgroundColor: `hsl(${theme.colors.primary})` }}
+                                  />
+                                  <div>
+                                    <div className="font-medium">{theme.name}</div>
+                                    <div className="text-xs text-muted-foreground">{theme.description}</div>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        {Object.entries(themes).map(([key, theme]) => (
+                          <button
+                            key={key}
+                            onClick={() => handleThemeChange(key)}
+                            className={`p-3 rounded-lg border-2 transition-all ${
+                              selectedTheme === key 
+                                ? 'border-primary bg-primary/5' 
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <div 
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: `hsl(${theme.colors.primary})` }}
+                              />
+                              <span className="text-sm font-medium">{theme.name}</span>
+                            </div>
+                            <div className="flex gap-1">
+                              <div 
+                                className="w-4 h-4 rounded"
+                                style={{ backgroundColor: `hsl(${theme.colors.background})` }}
+                              />
+                              <div 
+                                className="w-4 h-4 rounded"
+                                style={{ backgroundColor: `hsl(${theme.colors.primary})` }}
+                              />
+                              <div 
+                                className="w-4 h-4 rounded"
+                                style={{ backgroundColor: `hsl(${theme.colors.secondary})` }}
+                              />
+                              <div 
+                                className="w-4 h-4 rounded"
+                                style={{ backgroundColor: `hsl(${theme.colors.accent})` }}
+                              />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      
+                      <div className="text-sm text-muted-foreground">
+                        Preview: The entire application will adopt the selected theme's color palette and design principles.
                       </div>
                     </div>
                   )}

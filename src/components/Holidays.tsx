@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Trash2, Settings } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Holiday {
@@ -27,6 +27,17 @@ function adjustColor(color: string, amount: number) {
   return '#' + color.replace(/^#/, '').replace(/../g, color => 
     ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2)
   );
+}
+
+function lightenColor(color: string, percent: number) {
+  const num = parseInt(color.replace("#", ""), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = (num >> 16) + amt;
+  const G = (num >> 8 & 0x00FF) + amt;
+  const B = (num & 0x0000FF) + amt;
+  return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+    (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
 }
 
 const Holidays: React.FC = () => {
@@ -180,6 +191,12 @@ const Holidays: React.FC = () => {
   const holidayDates = getHolidayDates();
   const leaveDates = getPlannedLeaveDates();
 
+  // Create lighter version of the progress bar color for the header
+  const lightProgressColor = lightenColor(progressBarColor, 35);
+  const lightProgressColor2 = lightenColor(progressBarColor, 25);
+  const lightProgressColor3 = lightenColor(progressBarColor, 15);
+  const lightProgressColor4 = lightenColor(progressBarColor, 5);
+
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 to-gray-50">
       <Card className="border-0 shadow-lg overflow-hidden relative">
@@ -200,7 +217,7 @@ const Holidays: React.FC = () => {
         <CardHeader 
           className="text-white p-6 relative overflow-hidden"
           style={{
-            background: `linear-gradient(135deg, ${progressBarColor}, ${adjustColor(progressBarColor, -20)}, ${adjustColor(progressBarColor, -40)}, ${adjustColor(progressBarColor, -60)})`,
+            background: `linear-gradient(135deg, ${lightProgressColor}, ${lightProgressColor2}, ${lightProgressColor3}, ${lightProgressColor4})`,
             backgroundSize: '400% 400%',
             animation: 'gradientFlow 15s ease infinite',
           }}
